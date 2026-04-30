@@ -1,0 +1,146 @@
+const mongoose = require('mongoose');
+
+const productionSchema = new mongoose.Schema({
+  labour: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Labour',
+    required: true
+  },
+  foreman: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  date: {
+    type: Date,
+    required: true,
+    default: Date.now
+  },
+  shiftType: {
+    type: String,
+    enum: ['Day', 'Night']
+  },
+  attendance: {
+    type: String,
+    enum: ['Present', 'Absent']
+  },
+  inTime: {
+    type: String
+  },
+  outTime: {
+    type: String
+  },
+  totalProduction: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  targetProduction: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  extraProduction: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  reject1: {
+    type: Number,
+    default: 0
+  },
+  totalReject: {
+    type: Number,
+    default: 0
+  },
+  reject2: {
+    type: Number,
+    default: 0
+  },
+  reject3: {
+    type: Number,
+    default: 0
+  },
+  netProduction: {
+    type: Number,
+    required: true
+  },
+  bonusRate: {
+    type: Number,
+    required: true // e.g., 0.05, 0.20, 0.25
+  },
+  bonusAmount: {
+    type: Number,
+    required: true
+  },
+  overtimeHours: {
+    type: Number,
+    default: 0
+  },
+  advances: {
+    type: Number,
+    default: 0
+  },
+  deductions: {
+    type: Number,
+    default: 0
+  },
+  finalSalary: {
+    type: Number,
+    required: true
+  }
+}, { timestamps: true });
+
+// Auto calculate fields before save
+// NOTE: async pre-hooks in modern Mongoose use Promise style (no next param)
+productionSchema.pre('validate', async function() {
+  const totProd = Number(this.totalProduction) || 0;
+  const tarProd = Number(this.targetProduction) || 0;
+  const tRej = Number(this.totalReject) || 0;
+
+  this.netProduction = totProd - tRej;
+  this.extraProduction = Math.max(0, totProd - tarProd);
+
+  let lType = 'Simple';
+  try {
+    const Labour = require('./Labour');
+    const labour = await Labour.findById(this.labour);
+    if (labour && labour.labourType) lType = labour.labourType;
+  } catch (err) {
+    console.error("Error fetching Labour for production calculation:", err);
+  }
+
+  // Ensure lType is always a valid string
+  if (!lType) lType = 'Simple';
+
+  if (lType === '4 Die') {
+    if (totProd >= tarProd && tarProd > 0) {
+      const extra = Math.max(0, totProd - tarProd);
+      this.bonusAmount = 30 + Math.floor(extra / 8) * 10;
+    } else {
+      this.bonusAmount = 0;
+    }
+  } else if (lType === '6 Die') {
+    if (totProd >= tarProd && tarProd > 0) {
+      const extra = Math.max(0, totProd - tarProd);
+      this.bonusAmount = 40 + Math.floor(extra / 12) * 15;
+    } else {
+      this.bonusAmount = 0;
+    }
+  } else {
+    this.bonusAmount = totProd * (Number(this.bonusRate) || 0);
+  }
+
+  const adv = Number(this.advances) || 0;
+  const ded = Number(this.deductions) || 0;
+
+  this.finalSalary = this.bonusAmount - adv - ded;
+
+  if (isNaN(this.netProduction)) this.netProduction = 0;
+  if (isNaN(this.extraProduction)) this.extraProduction = 0;
+  if (isNaN(this.bonusAmount)) this.bonusAmount = 0;
+  if (isNaN(this.finalSalary)) this.finalSalary = 0;
+});
+
+const Production = mongoose.model('Production', productionSchema);
+module.exports = Production;
