@@ -74,7 +74,7 @@ const History = () => {
     if (filteredProductions.length === 0) { toast.error('No production data to download'); return; }
     const doc = new jsPDF({ orientation: 'landscape' });
     doc.text(`Production Report - ${selectedDate} (${filterType})`, 14, 15);
-    const tableColumn = ["Worker", "Type", "Shift", "Att.", "In", "Out", "Target", "Total", "Net", "Extra", "Reject", "R2", "R3", "Bonus", "Overtime"];
+    const tableColumn = ["Worker", "Type", "Shift", "Att.", "In", "Out", "Target", "Total", "Net", "Extra", "Reject", "R2", "R3", "S.Type", "S.Total", "S.Rej", "Reason", "Bonus", "Overtime"];
     const tableRows = filteredProductions.map(p => [
       p.labour?.name || 'Unknown',
       p.labour?.labourType && p.labour.labourType !== 'Simple' ? p.labour.labourType : '-',
@@ -89,6 +89,10 @@ const History = () => {
       p.totalReject ?? 0,
       p.reject2 ?? 0,
       p.reject3 ?? 0,
+      p.secondaryDieType || '-',
+      p.secondaryTotalProduction ?? 0,
+      p.secondaryTotalReject ?? 0,
+      p.lowProductionReason || '-',
       p.bonusAmount?.toFixed(2) ?? '0.00',
       p.overtimeHours ?? 0
     ]);
@@ -151,13 +155,13 @@ const History = () => {
                   </thead>
                   <tbody>
                     {shifts.map((shift, index) => (
-                       <tr key={shift._id} className={`border-b border-gray-200 hover:bg-gray-100 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                          <td className="px-4 py-3 text-sm font-bold text-black">{shift.shiftType}</td>
-                          <td className="px-4 py-3 text-sm font-bold text-black">{shift.status}</td>
-                          <td className="px-4 py-3 text-sm font-medium text-black">{formatTime(shift.startTime || shift.date)}</td>
-                          <td className="px-4 py-3 text-sm font-medium text-black">{shift.endTime ? formatTime(shift.endTime) : '--:--'}</td>
-                          <td className="px-4 py-3 text-sm font-medium text-black">{shift.endTime ? calculateDuration(shift.startTime || shift.date, shift.endTime) : '--'}</td>
-                       </tr>
+                      <tr key={shift._id} className={`border-b border-gray-200 hover:bg-gray-100 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                        <td className="px-4 py-3 text-sm font-bold text-black">{shift.shiftType}</td>
+                        <td className="px-4 py-3 text-sm font-bold text-black">{shift.status}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-black">{formatTime(shift.startTime || shift.date)}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-black">{shift.endTime ? formatTime(shift.endTime) : '--:--'}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-black">{shift.endTime ? calculateDuration(shift.startTime || shift.date, shift.endTime) : '--'}</td>
+                      </tr>
                     ))}
                   </tbody>
                 </table>
@@ -199,54 +203,62 @@ const History = () => {
             </div>
 
             {filteredProductions.length > 0 ? (
-               <div className="overflow-x-auto rounded-xl border border-gray-200">
-               <table className="w-full text-left border-collapse text-black bg-white min-w-[1200px]">
-                 <thead>
-                   <tr className="bg-gray-100 border-b-2 border-gray-300">
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Worker</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Type</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Shift</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Att.</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Time (In-Out)</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Target</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Total</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Net</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Extra</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">T.Reject</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">R2</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">R3</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Bonus</th>
-                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Overtime</th>
-                   </tr>
-                 </thead>
-                 <tbody>
-                   {filteredProductions.map((prod, index) => {
-                     const isPresent = prod.attendance === 'Present';
-                     const lType = prod.labour?.labourType && prod.labour.labourType !== 'Simple' ? prod.labour.labourType : '-';
-                     return (
-                       <tr key={prod._id} className={`border-b border-gray-200 hover:bg-gray-100 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{prod.labour?.name || 'Unknown'}</td>
-                         <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">{lType}</td>
-                         <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">{prod.shiftType}</td>
-                         <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">{prod.attendance}</td>
-                         <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">
-                           {isPresent ? `${prod.inTime || '-'} to ${prod.outTime || '-'}` : '-'}
-                         </td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.targetProduction ?? 0) : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.totalProduction ?? 0) : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.netProduction ?? 0) : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.extraProduction ?? 0) : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.totalReject ?? 0) : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.reject2 ?? 0) : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.reject3 ?? 0) : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.bonusAmount?.toFixed(2) ?? '0.00') : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.overtimeHours ?? 0) : '-'}</td>
-                       </tr>
-                     );
-                   })}
-                 </tbody>
-               </table>
-             </div>
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
+                <table className="w-full text-left border-collapse text-black bg-white min-w-[1200px]">
+                  <thead>
+                    <tr className="bg-gray-100 border-b-2 border-gray-300">
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Worker</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Type</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Shift</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Att.</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Time (In-Out)</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Target</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Total</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Net</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Extra</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">T.Reject</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">R2</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">R3</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">S.Type</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">S.Total</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">S.Rej</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Reason</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Bonus</th>
+                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Overtime</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProductions.map((prod, index) => {
+                      const isPresent = prod.attendance === 'Present';
+                      const lType = prod.labour?.labourType && prod.labour.labourType !== 'Simple' ? prod.labour.labourType : '-';
+                      return (
+                        <tr key={prod._id} className={`border-b border-gray-200 hover:bg-gray-100 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{prod.labour?.name || 'Unknown'}</td>
+                          <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">{lType}</td>
+                          <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">{prod.shiftType}</td>
+                          <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">{prod.attendance}</td>
+                          <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">
+                            {isPresent ? `${prod.inTime || '-'} to ${prod.outTime || '-'}` : '-'}
+                          </td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.targetProduction ?? 0) : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.totalProduction ?? 0) : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.netProduction ?? 0) : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.extraProduction ?? 0) : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.totalReject ?? 0) : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.reject2 ?? 0) : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.reject3 ?? 0) : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.secondaryDieType || '-') : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.secondaryTotalProduction ?? 0) : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.secondaryTotalReject ?? 0) : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">{isPresent ? (prod.lowProductionReason || '-') : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.bonusAmount?.toFixed(2) ?? '0.00') : '-'}</td>
+                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.overtimeHours ?? 0) : '-'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             ) : (
               <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                 <Box className="mx-auto text-gray-300 mb-2" size={32} />

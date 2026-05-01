@@ -256,7 +256,7 @@ const Thakdar = () => {
                     <div className="bg-black px-5 py-3 flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center text-xs font-black flex-shrink-0">
-                          {party ? party.charAt(0).toUpperCase() : <Truck size={14}/>}
+                          {party ? party.charAt(0).toUpperCase() : <Truck size={14} />}
                         </div>
                         <div>
                           <p className="font-black text-white text-sm">{party || 'Unassigned Party'}</p>

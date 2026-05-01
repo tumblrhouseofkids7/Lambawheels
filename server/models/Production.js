@@ -65,6 +65,29 @@ const productionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  secondaryDieType: {
+    type: String,
+    enum: ['4 Die', '6 Die', null]
+  },
+  secondaryTotalProduction: {
+    type: Number,
+    default: 0
+  },
+  secondaryTotalReject: {
+    type: Number,
+    default: 0
+  },
+  secondaryReject2: {
+    type: Number,
+    default: 0
+  },
+  secondaryReject3: {
+    type: Number,
+    default: 0
+  },
+  lowProductionReason: {
+    type: String
+  },
   bonusRate: {
     type: Number,
     required: true // e.g., 0.05, 0.20, 0.25
@@ -93,7 +116,7 @@ const productionSchema = new mongoose.Schema({
 
 // Auto calculate fields before save
 // NOTE: async pre-hooks in modern Mongoose use Promise style (no next param)
-productionSchema.pre('validate', async function() {
+productionSchema.pre('validate', async function () {
   const totProd = Number(this.totalProduction) || 0;
   const tarProd = Number(this.targetProduction) || 0;
   const tRej = Number(this.totalReject) || 0;

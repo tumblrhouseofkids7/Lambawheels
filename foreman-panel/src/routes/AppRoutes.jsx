@@ -4,8 +4,8 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import ForemanLayout from '../layouts/ForemanLayout';
 import Login from '../pages/Login';
 import Dashboard from '../pages/Dashboard';
-import StartShift from '../pages/StartShift';
 import AddEntry from '../pages/AddEntry';
+import WorkerEntry from '../pages/WorkerEntry';
 import Thakdar from '../pages/Thakdar';
 import History from '../pages/History';
 import Pending from '../pages/Pending';
@@ -22,8 +22,8 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={['foreman']} />}>
         <Route element={<ForemanLayout />}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/shift" element={<StartShift />} />
           <Route path="/add-entry" element={<AddEntry />} />
+          <Route path="/add-entry/:id" element={<WorkerEntry />} />
           <Route path="/thakdar" element={<Thakdar />} />
           <Route path="/history" element={<History />} />
           <Route path="/team" element={<Team />} />

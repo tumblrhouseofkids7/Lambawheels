@@ -49,8 +49,8 @@ const Team = () => {
             role: rowRole,
             labourType: rowLabourType
           };
-          
-          if (!newLabour.name) continue; 
+
+          if (!newLabour.name) continue;
 
           const ok = await addLabour(newLabour);
           if (ok) successCount++;
@@ -127,14 +127,14 @@ const Team = () => {
 
   return (
     <div className="space-y-5 fade-in">
-      <ConfirmModal 
-        isOpen={confirmModal.isOpen} 
-        title="Delete Team Member?" 
-        message="This action cannot be undone. Are you sure you want to remove this worker from your permanent team?" 
-        confirmText="Delete" 
-        type="danger" 
-        onConfirm={handleDelete} 
-        onClose={() => setConfirmModal({ isOpen: false, id: null })} 
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title="Delete Team Member?"
+        message="This action cannot be undone. Are you sure you want to remove this worker from your permanent team?"
+        confirmText="Delete"
+        type="danger"
+        onConfirm={handleDelete}
+        onClose={() => setConfirmModal({ isOpen: false, id: null })}
       />
 
       {/* Header */}
@@ -160,12 +160,12 @@ const Team = () => {
           <Upload size={16} />
           <span className="hidden sm:inline">Upload Excel</span>
         </button>
-        <input 
-          type="file" 
-          accept=".xlsx, .xls" 
-          className="hidden" 
-          ref={fileInputRef} 
-          onChange={handleFileUpload} 
+        <input
+          type="file"
+          accept=".xlsx, .xls"
+          className="hidden"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
         />
       </div>
 
@@ -211,21 +211,19 @@ const Team = () => {
                   <tr key={row._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3 font-semibold text-gray-900">{row.name}</td>
                     <td className="px-5 py-3">
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${
-                        row.gender === 'Male' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                        row.gender === 'Female' ? 'bg-pink-50 text-pink-600 border-pink-200' :
-                        'bg-gray-50 text-gray-600 border-gray-200'
-                      }`}>
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${row.gender === 'Male' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                          row.gender === 'Female' ? 'bg-pink-50 text-pink-600 border-pink-200' :
+                            'bg-gray-50 text-gray-600 border-gray-200'
+                        }`}>
                         {row.gender}
                       </span>
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1.5">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${
-                          row.role === 'Thakdar'
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${row.role === 'Thakdar'
                             ? 'bg-purple-50 text-purple-600 border-purple-200'
                             : 'bg-orange-50 text-orange-600 border-orange-200'
-                        }`}>
+                          }`}>
                           {row.role || 'Labour'}
                         </span>
                         {row.role === 'Labour' && row.labourType && (
@@ -301,8 +299,7 @@ const Team = () => {
                       type="button"
                       key={g}
                       onClick={() => setForm({ ...form, gender: g })}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
-                        form.gender === g
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${form.gender === g
                           ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20'
                           : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                         }`}
@@ -322,8 +319,7 @@ const Team = () => {
                       type="button"
                       key={r}
                       onClick={() => setForm({ ...form, role: r, labourType: null })}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
-                        form.role === r
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${form.role === r
                           ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20'
                           : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                         }`}
@@ -333,7 +329,7 @@ const Team = () => {
                   ))}
                 </div>
               </div>
-              
+
               {form.role === 'Labour' && (
                 <div>
                   <label className="text-gray-600 text-xs font-bold uppercase tracking-wider block mb-1.5">
@@ -346,8 +342,7 @@ const Team = () => {
                         type="button"
                         key={opt.label}
                         onClick={() => setForm({ ...form, labourType: opt.value })}
-                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${
-                          form.labourType === opt.value
+                        className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all ${form.labourType === opt.value
                             ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20'
                             : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                           }`}

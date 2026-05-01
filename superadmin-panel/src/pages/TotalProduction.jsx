@@ -188,6 +188,8 @@ const TotalProduction = () => {
                     <th className="p-3 font-bold text-right">Total</th>
                     <th className="p-3 font-bold text-right">Net</th>
                     <th className="p-3 font-bold text-right text-red-500">Rejects</th>
+                    <th className="p-3 font-bold text-right">Add. Work</th>
+                    <th className="p-3 font-bold text-left">Reason</th>
                     <th className="p-3 font-bold text-right text-emerald-600">Salary</th>
                   </tr>
                 </thead>
@@ -249,6 +251,23 @@ const TotalProduction = () => {
                               </div>
                             )}
                           </>
+                        ) : '-'}
+                      </td>
+                      <td className="p-3 text-right">
+                        {prod.attendance === 'Present' && prod.secondaryDieType ? (
+                          <>
+                            <div className="font-bold text-sm text-indigo-600">{prod.secondaryDieType}</div>
+                            <div className="text-[10px] text-gray-500">
+                              Tot:{prod.secondaryTotalProduction || 0} Rej:{prod.secondaryTotalReject || 0}
+                            </div>
+                          </>
+                        ) : '-'}
+                      </td>
+                      <td className="p-3 text-left">
+                        {prod.attendance === 'Present' && prod.lowProductionReason ? (
+                          <div className="text-xs text-gray-600 truncate max-w-[150px]" title={prod.lowProductionReason}>
+                            {prod.lowProductionReason}
+                          </div>
                         ) : '-'}
                       </td>
                       <td className="p-3 text-right">

@@ -44,7 +44,7 @@ const TotalProduction = () => {
     if (filteredProductions.length === 0) { toast.error('No production data to download'); return; }
     const doc = new jsPDF({ orientation: 'landscape' });
     doc.text(`Total Production Report - ${startDate} to ${endDate} ${shift ? `(Shift: ${shift})` : ''} (${filterType})`, 14, 15);
-    const tableColumn = ["Date", "Worker", "Type", "Foreman", "Shift", "Att.", "Time", "Target", "Total", "Net", "Extra", "T.Reject", "R2", "R3", "Bonus", "Overtime"];
+    const tableColumn = ["Date", "Worker", "Type", "Foreman", "Shift", "Att.", "Time", "Target", "Total", "Net", "Extra", "T.Reject", "R2", "R3", "S.Type", "S.Total", "S.Rej", "Reason", "Bonus", "Overtime"];
     const tableRows = filteredProductions.map(p => {
         const isPresent = p.attendance === 'Present';
         return [
@@ -62,6 +62,10 @@ const TotalProduction = () => {
         isPresent ? (p.totalReject ?? 0) : '-',
         isPresent ? (p.reject2 ?? 0) : '-',
         isPresent ? (p.reject3 ?? 0) : '-',
+        p.secondaryDieType || '-',
+        p.secondaryTotalProduction ?? 0,
+        p.secondaryTotalReject ?? 0,
+        p.lowProductionReason || '-',
         isPresent ? (p.bonusAmount?.toFixed(2) ?? '0.00') : '-',
         isPresent ? (p.overtimeHours ?? 0) : '-'
         ]
@@ -190,6 +194,10 @@ const TotalProduction = () => {
                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">T.Reject</th>
                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">R2</th>
                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">R3</th>
+                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">S.Type</th>
+                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">S.Total</th>
+                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">S.Rej</th>
+                     <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Reason</th>
                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Bonus</th>
                      <th className="px-3 py-3 text-xs font-bold text-black whitespace-nowrap">Overtime</th>
                    </tr>
@@ -216,6 +224,10 @@ const TotalProduction = () => {
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.totalReject ?? 0) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.reject2 ?? 0) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.reject3 ?? 0) : '-'}</td>
+                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.secondaryDieType || '-') : '-'}</td>
+                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.secondaryTotalProduction ?? 0) : '-'}</td>
+                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.secondaryTotalReject ?? 0) : '-'}</td>
+                         <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">{isPresent ? (prod.lowProductionReason || '-') : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.bonusAmount?.toFixed(2) ?? '0.00') : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.overtimeHours ?? 0) : '-'}</td>
                        </tr>

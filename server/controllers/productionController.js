@@ -11,23 +11,23 @@ const getProductions = async (req, res) => {
     const { date, startDate, endDate, shift } = req.query;
     if (date) {
       const start = new Date(date);
-      start.setUTCHours(0,0,0,0);
+      start.setUTCHours(0, 0, 0, 0);
       const end = new Date(date);
-      end.setUTCHours(23,59,59,999);
+      end.setUTCHours(23, 59, 59, 999);
       query.date = { $gte: start, $lte: end };
     } else if (startDate && endDate) {
       const start = new Date(startDate);
-      start.setUTCHours(0,0,0,0);
+      start.setUTCHours(0, 0, 0, 0);
       const end = new Date(endDate);
-      end.setUTCHours(23,59,59,999);
+      end.setUTCHours(23, 59, 59, 999);
       query.date = { $gte: start, $lte: end };
     } else if (startDate) {
       const start = new Date(startDate);
-      start.setUTCHours(0,0,0,0);
+      start.setUTCHours(0, 0, 0, 0);
       query.date = { $gte: start };
     } else if (endDate) {
       const end = new Date(endDate);
-      end.setUTCHours(23,59,59,999);
+      end.setUTCHours(23, 59, 59, 999);
       query.date = { $lte: end };
     }
 
@@ -67,7 +67,13 @@ const addProduction = async (req, res) => {
       bonusRate,
       overtimeHours,
       advances,
-      deductions
+      deductions,
+      secondaryDieType,
+      secondaryTotalProduction,
+      secondaryTotalReject,
+      secondaryReject2,
+      secondaryReject3,
+      lowProductionReason
     } = req.body;
 
     const production = new Production({
@@ -87,15 +93,21 @@ const addProduction = async (req, res) => {
       bonusRate,
       overtimeHours: overtimeHours || 0,
       advances: advances || 0,
-      deductions: deductions || 0
+      deductions: deductions || 0,
+      secondaryDieType,
+      secondaryTotalProduction: secondaryTotalProduction || 0,
+      secondaryTotalReject: secondaryTotalReject || 0,
+      secondaryReject2: secondaryReject2 || 0,
+      secondaryReject3: secondaryReject3 || 0,
+      lowProductionReason
     });
 
     // Final calculations are done in pre-save middleware of Production model
     const createdProduction = await production.save();
-    
+
     // Populate before sending response to get names
     await createdProduction.populate('labour', 'name');
-    
+
     res.status(201).json(createdProduction);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -121,7 +133,13 @@ const updateProduction = async (req, res) => {
       bonusRate,
       overtimeHours,
       advances,
-      deductions
+      deductions,
+      secondaryDieType,
+      secondaryTotalProduction,
+      secondaryTotalReject,
+      secondaryReject2,
+      secondaryReject3,
+      lowProductionReason
     } = req.body;
 
     const production = await Production.findById(req.params.id);
@@ -144,6 +162,12 @@ const updateProduction = async (req, res) => {
     if (overtimeHours !== undefined) production.overtimeHours = overtimeHours === '' ? 0 : overtimeHours;
     if (advances !== undefined) production.advances = advances === '' ? 0 : advances;
     if (deductions !== undefined) production.deductions = deductions === '' ? 0 : deductions;
+    if (secondaryDieType !== undefined) production.secondaryDieType = secondaryDieType === '' ? null : secondaryDieType;
+    if (secondaryTotalProduction !== undefined) production.secondaryTotalProduction = secondaryTotalProduction === '' ? 0 : secondaryTotalProduction;
+    if (secondaryTotalReject !== undefined) production.secondaryTotalReject = secondaryTotalReject === '' ? 0 : secondaryTotalReject;
+    if (secondaryReject2 !== undefined) production.secondaryReject2 = secondaryReject2 === '' ? 0 : secondaryReject2;
+    if (secondaryReject3 !== undefined) production.secondaryReject3 = secondaryReject3 === '' ? 0 : secondaryReject3;
+    if (lowProductionReason !== undefined) production.lowProductionReason = lowProductionReason;
 
     const updatedProduction = await production.save();
     await updatedProduction.populate('labour', 'name');
