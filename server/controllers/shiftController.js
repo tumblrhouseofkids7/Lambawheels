@@ -85,8 +85,11 @@ const getShiftsForDate = async (req, res) => {
       .sort({ shiftType: 1, createdAt: 1 });
 
     // For each shift, fetch total production for that foreman on that date
+    // Filter out orphaned shifts where the foreman user no longer exists
+    const validShifts = shifts.filter((shift) => shift.foreman != null);
+
     const results = await Promise.all(
-      shifts.map(async (shift) => {
+      validShifts.map(async (shift) => {
         const productions = await Production.find({
           foreman: shift.foreman._id,
           date: { $gte: start, $lte: end },

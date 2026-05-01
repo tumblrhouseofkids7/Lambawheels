@@ -29,6 +29,7 @@ const WorkerEntry = () => {
     bonusRate: 0.05,
     overtimeHours: '',
     secondaryDieType: '',
+    secondaryTargetProduction: '',
     secondaryTotalProduction: '',
     secondaryTotalReject: '',
     secondaryReject2: '',
@@ -76,6 +77,7 @@ const WorkerEntry = () => {
         bonusRate: existing.bonusRate || 0.05,
         overtimeHours: existing.overtimeHours || '',
         secondaryDieType: existing.secondaryDieType || '',
+        secondaryTargetProduction: existing.secondaryTargetProduction || '',
         secondaryTotalProduction: existing.secondaryTotalProduction || '',
         secondaryTotalReject: existing.secondaryTotalReject || '',
         secondaryReject2: existing.secondaryReject2 || '',
@@ -107,6 +109,7 @@ const WorkerEntry = () => {
         bonusRate: 0.05,
         overtimeHours: '',
         secondaryDieType: '',
+        secondaryTargetProduction: '',
         secondaryTotalProduction: '',
         secondaryTotalReject: '',
         secondaryReject2: '',
@@ -141,6 +144,7 @@ const WorkerEntry = () => {
       setFormData(prev => ({
         ...prev,
         secondaryDieType: '',
+        secondaryTargetProduction: '',
         secondaryTotalProduction: '',
         secondaryTotalReject: '',
         secondaryReject2: '',
@@ -149,9 +153,11 @@ const WorkerEntry = () => {
       setSelectedSecondaryRejects([]);
     } else {
       const secType = labour?.labourType === '4 Die' ? '6 Die' : '4 Die';
+      const secTarget = secType === '6 Die' ? 168 : 120;
       setFormData(prev => ({
         ...prev,
-        secondaryDieType: secType
+        secondaryDieType: secType,
+        secondaryTargetProduction: secTarget
       }));
     }
   };
@@ -192,7 +198,7 @@ const WorkerEntry = () => {
     return Math.max(0, (Number(formData.totalProduction) || 0) - (Number(formData.targetProduction) || 0));
   };
 
-  const calculateBonus = () => {
+  const calculatePrimaryBonus = () => {
     const totalProd = Number(formData.totalProduction) || 0;
     const targetProd = Number(formData.targetProduction) || 0;
     const lType = labour?.labourType;
@@ -210,8 +216,30 @@ const WorkerEntry = () => {
       }
       return 0;
     }
-
     return totalProd * (Number(formData.bonusRate) || 0);
+  };
+
+  const calculateSecondaryBonus = () => {
+    const secTotalProd = Number(formData.secondaryTotalProduction) || 0;
+    const secTargetProd = Number(formData.secondaryTargetProduction) || 0;
+    const secType = formData.secondaryDieType;
+
+    if (secType === '4 Die') {
+      if (secTotalProd >= secTargetProd && secTargetProd > 0) {
+        const extra = Math.max(0, secTotalProd - secTargetProd);
+        return 30 + Math.floor(extra / 8) * 10;
+      }
+    } else if (secType === '6 Die') {
+      if (secTotalProd >= secTargetProd && secTargetProd > 0) {
+        const extra = Math.max(0, secTotalProd - secTargetProd);
+        return 40 + Math.floor(extra / 12) * 15;
+      }
+    }
+    return 0;
+  };
+
+  const calculateBonus = () => {
+    return calculatePrimaryBonus() + calculateSecondaryBonus();
   };
 
   const getUpdateTimestamp = () => {
@@ -330,7 +358,7 @@ const WorkerEntry = () => {
                   <div className={`grid grid-cols-1 ${(!labour?.labourType || labour.labourType === 'Simple') ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-4`}>
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Target</label>
-                      <input type="number" name="targetProduction" value={formData.targetProduction} onChange={handleInputChange} min="0" className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-black text-xl transition-all" required />
+                      <input type="number" name="targetProduction" value={formData.targetProduction} readOnly className="w-full px-4 py-3.5 bg-gray-200 border border-gray-300 rounded-xl focus:outline-none font-black text-xl text-gray-600 transition-all cursor-not-allowed" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Total Prod</label>
@@ -399,10 +427,14 @@ const WorkerEntry = () => {
                       {formData.secondaryDieType && (
                         <div className="p-4 border border-indigo-100 bg-indigo-50/30 rounded-xl space-y-4 mb-4">
                           <h5 className="font-bold text-indigo-800 text-sm">{formData.secondaryDieType} Details</h5>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-xs font-bold text-indigo-500 uppercase tracking-wider mb-2">Target</label>
+                              <input type="number" name="secondaryTargetProduction" value={formData.secondaryTargetProduction} readOnly className="w-full px-4 py-3.5 bg-indigo-100/50 border border-indigo-200 rounded-xl focus:outline-none font-bold text-base text-indigo-600 transition-all cursor-not-allowed" />
+                            </div>
                             <div>
                               <label className="block text-xs font-bold text-indigo-500 uppercase tracking-wider mb-2">Total Prod</label>
-                              <input type="number" name="secondaryTotalProduction" value={formData.secondaryTotalProduction} onChange={handleInputChange} min="0" className="w-full px-4 py-3.5 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-base transition-all" />
+                              <input type="number" name="secondaryTotalProduction" value={formData.secondaryTotalProduction} onChange={handleInputChange} min="0" className="w-full px-4 py-3.5 bg-white border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-base transition-all" required={!!formData.secondaryDieType} />
                             </div>
                             <div>
                               <label className="block text-xs font-bold text-red-500 uppercase tracking-wider mb-2">Total Reject</label>
@@ -443,6 +475,15 @@ const WorkerEntry = () => {
                               </div>
                             )}
                           </div>
+                          
+                          {formData.secondaryTotalProduction > 0 && (
+                            <div className="mt-4 p-3 bg-indigo-100/50 rounded-xl border border-indigo-200 flex justify-between items-center">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-indigo-800 text-sm">Addl. Bonus</span>
+                              </div>
+                              <span className="text-xl font-black text-indigo-600">₹{calculateSecondaryBonus().toFixed(2)}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -493,18 +534,26 @@ const WorkerEntry = () => {
                   </div>
 
                   {formData.totalProduction > 0 && (
-                    <div className="mt-5 p-4 bg-green-50/50 rounded-xl border border-green-200 flex justify-between items-center">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-green-800 text-sm">Bonus</span>
-                        {(!labour?.labourType || labour.labourType === 'Simple') ? (
-                          <span className="text-xs text-green-600 mt-0.5">{formData.totalProduction} × ₹{formData.bonusRate}</span>
-                        ) : labour.labourType === '4 Die' ? (
-                          <span className="text-xs text-green-600 mt-0.5">₹30 base + ₹10/8 extra</span>
-                        ) : labour.labourType === '6 Die' ? (
-                          <span className="text-xs text-green-600 mt-0.5">₹40 base + ₹15/12 extra</span>
-                        ) : null}
+                    <div className="mt-5 p-4 bg-green-50/50 rounded-xl border border-green-200">
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-green-800 text-sm">Final Bonus</span>
+                          {(!labour?.labourType || labour.labourType === 'Simple') ? (
+                            <span className="text-xs text-green-600 mt-0.5">{formData.totalProduction} × ₹{formData.bonusRate}</span>
+                          ) : (
+                            <span className="text-xs text-green-600 mt-0.5">Primary{formData.secondaryDieType ? ' + Additional Work' : ' Bonus'}</span>
+                          )}
+                        </div>
+                        <span className="text-2xl font-black text-green-600">₹{calculateBonus().toFixed(2)}</span>
                       </div>
-                      <span className="text-2xl font-black text-green-600">₹{calculateBonus().toFixed(2)}</span>
+                      {formData.secondaryDieType && calculateSecondaryBonus() > 0 && (
+                        <div className="mt-2 pt-2 border-t border-green-200 flex justify-between items-center text-xs">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-gray-600 font-semibold">Primary Bonus: <span className="text-green-700 font-bold">₹{calculatePrimaryBonus().toFixed(2)}</span></span>
+                            <span className="text-indigo-600 font-semibold">Additional Bonus ({formData.secondaryDieType}): <span className="text-indigo-700 font-bold">₹{calculateSecondaryBonus().toFixed(2)}</span></span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

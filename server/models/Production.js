@@ -69,6 +69,10 @@ const productionSchema = new mongoose.Schema({
     type: String,
     enum: ['4 Die', '6 Die', null]
   },
+  secondaryTargetProduction: {
+    type: Number,
+    default: 0
+  },
   secondaryTotalProduction: {
     type: Number,
     default: 0
@@ -95,6 +99,10 @@ const productionSchema = new mongoose.Schema({
   bonusAmount: {
     type: Number,
     required: true
+  },
+  secondaryBonusAmount: {
+    type: Number,
+    default: 0
   },
   overtimeHours: {
     type: Number,
@@ -136,23 +144,40 @@ productionSchema.pre('validate', async function () {
   // Ensure lType is always a valid string
   if (!lType) lType = 'Simple';
 
+  let primaryBonus = 0;
   if (lType === '4 Die') {
     if (totProd >= tarProd && tarProd > 0) {
       const extra = Math.max(0, totProd - tarProd);
-      this.bonusAmount = 30 + Math.floor(extra / 8) * 10;
-    } else {
-      this.bonusAmount = 0;
+      primaryBonus = 30 + Math.floor(extra / 8) * 10;
     }
   } else if (lType === '6 Die') {
     if (totProd >= tarProd && tarProd > 0) {
       const extra = Math.max(0, totProd - tarProd);
-      this.bonusAmount = 40 + Math.floor(extra / 12) * 15;
-    } else {
-      this.bonusAmount = 0;
+      primaryBonus = 40 + Math.floor(extra / 12) * 15;
     }
   } else {
-    this.bonusAmount = totProd * (Number(this.bonusRate) || 0);
+    primaryBonus = totProd * (Number(this.bonusRate) || 0);
   }
+
+  let secondaryBonus = 0;
+  if (this.secondaryDieType === '4 Die') {
+    const secTotProd = Number(this.secondaryTotalProduction) || 0;
+    const secTarProd = Number(this.secondaryTargetProduction) || 0;
+    if (secTotProd >= secTarProd && secTarProd > 0) {
+      const extra = Math.max(0, secTotProd - secTarProd);
+      secondaryBonus = 30 + Math.floor(extra / 8) * 10;
+    }
+  } else if (this.secondaryDieType === '6 Die') {
+    const secTotProd = Number(this.secondaryTotalProduction) || 0;
+    const secTarProd = Number(this.secondaryTargetProduction) || 0;
+    if (secTotProd >= secTarProd && secTarProd > 0) {
+      const extra = Math.max(0, secTotProd - secTarProd);
+      secondaryBonus = 40 + Math.floor(extra / 12) * 15;
+    }
+  }
+
+  this.secondaryBonusAmount = secondaryBonus;
+  this.bonusAmount = primaryBonus + secondaryBonus;
 
   const adv = Number(this.advances) || 0;
   const ded = Number(this.deductions) || 0;
@@ -162,6 +187,7 @@ productionSchema.pre('validate', async function () {
   if (isNaN(this.netProduction)) this.netProduction = 0;
   if (isNaN(this.extraProduction)) this.extraProduction = 0;
   if (isNaN(this.bonusAmount)) this.bonusAmount = 0;
+  if (isNaN(this.secondaryBonusAmount)) this.secondaryBonusAmount = 0;
   if (isNaN(this.finalSalary)) this.finalSalary = 0;
 });
 

@@ -69,6 +69,7 @@ const addProduction = async (req, res) => {
       advances,
       deductions,
       secondaryDieType,
+      secondaryTargetProduction,
       secondaryTotalProduction,
       secondaryTotalReject,
       secondaryReject2,
@@ -95,6 +96,7 @@ const addProduction = async (req, res) => {
       advances: advances || 0,
       deductions: deductions || 0,
       secondaryDieType,
+      secondaryTargetProduction: secondaryTargetProduction || 0,
       secondaryTotalProduction: secondaryTotalProduction || 0,
       secondaryTotalReject: secondaryTotalReject || 0,
       secondaryReject2: secondaryReject2 || 0,
@@ -135,6 +137,7 @@ const updateProduction = async (req, res) => {
       advances,
       deductions,
       secondaryDieType,
+      secondaryTargetProduction,
       secondaryTotalProduction,
       secondaryTotalReject,
       secondaryReject2,
@@ -163,6 +166,7 @@ const updateProduction = async (req, res) => {
     if (advances !== undefined) production.advances = advances === '' ? 0 : advances;
     if (deductions !== undefined) production.deductions = deductions === '' ? 0 : deductions;
     if (secondaryDieType !== undefined) production.secondaryDieType = secondaryDieType === '' ? null : secondaryDieType;
+    if (secondaryTargetProduction !== undefined) production.secondaryTargetProduction = secondaryTargetProduction === '' ? 0 : secondaryTargetProduction;
     if (secondaryTotalProduction !== undefined) production.secondaryTotalProduction = secondaryTotalProduction === '' ? 0 : secondaryTotalProduction;
     if (secondaryTotalReject !== undefined) production.secondaryTotalReject = secondaryTotalReject === '' ? 0 : secondaryTotalReject;
     if (secondaryReject2 !== undefined) production.secondaryReject2 = secondaryReject2 === '' ? 0 : secondaryReject2;

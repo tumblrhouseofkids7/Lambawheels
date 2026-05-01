@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 const UserManagement = () => {
   const { users, isLoading, fetchUsers, removeUser, addUser, updateUser } = useSystemUserStore();
   const [search, setSearch] = useState('');
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', role: 'foreman' });
 
@@ -21,7 +21,7 @@ const UserManagement = () => {
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
     confirmText: 'Confirm',
     type: 'danger'
   });
@@ -98,10 +98,10 @@ const UserManagement = () => {
   const handleVerifySubmit = async (e) => {
     e.preventDefault();
     try {
-      await updateUser(verifyData.id, { 
-        name: verifyData.name, 
+      await updateUser(verifyData.id, {
+        name: verifyData.name,
         phone: verifyData.phone,
-        role: verifyData.role 
+        role: verifyData.role
       });
       toast.success('User verified and profile updated successfully.');
       setIsVerifyModalOpen(false);
@@ -110,19 +110,19 @@ const UserManagement = () => {
     }
   };
 
-  const filteredUsers = users?.filter(u => 
-    u.name?.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredUsers = users?.filter(u =>
+    u.name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   ) || [];
 
   const renderRoleBadge = (role) => {
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize
-        ${role === 'superadmin' ? 'bg-red-100 text-red-700' : 
-          role === 'accountant' ? 'bg-blue-100 text-blue-700' : 
-          role === 'foreman' ? 'bg-orange-100 text-orange-700' :
-          role === 'blocked' ? 'bg-gray-800 text-white' :
-          'bg-yellow-100 text-yellow-800'}`}
+        ${role === 'superadmin' ? 'bg-red-100 text-red-700' :
+          role === 'accountant' ? 'bg-blue-100 text-blue-700' :
+            role === 'foreman' ? 'bg-orange-100 text-orange-700' :
+              role === 'blocked' ? 'bg-gray-800 text-white' :
+                'bg-yellow-100 text-yellow-800'}`}
       >
         {role || 'Pending'}
       </span>
@@ -136,7 +136,7 @@ const UserManagement = () => {
           <h1 className="text-2xl font-bold text-gray-900">System Users</h1>
           <p className="text-gray-500">Manage superadmins, accountants, and foremen access.</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium transition-colors shadow-sm w-full sm:w-auto justify-center"
         >
@@ -148,7 +148,7 @@ const UserManagement = () => {
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
           <div className="relative w-full max-w-md">
             <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
+            <input
               type="text"
               placeholder="Search by name or email..."
               value={search}
@@ -204,16 +204,16 @@ const UserManagement = () => {
                       )}
                     </td>
                     <td className="p-4 flex gap-2">
-                      <button 
+                      <button
                         title="View Profile"
                         onClick={() => openProfileModal(user)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      
+
                       {(user.role === 'pending' || user.role === 'blocked') && (
-                        <button 
+                        <button
                           title="Verify & Assign Role"
                           onClick={() => openVerifyModal(user)}
                           className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
@@ -221,9 +221,9 @@ const UserManagement = () => {
                           <CheckCircle className="w-4 h-4" />
                         </button>
                       )}
-                      
+
                       {user.role !== 'superadmin' && user.role !== 'blocked' && (
-                        <button 
+                        <button
                           title="Block User"
                           onClick={() => handleBlock(user._id)}
                           className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
@@ -232,7 +232,7 @@ const UserManagement = () => {
                         </button>
                       )}
 
-                      <button 
+                      <button
                         title="Delete User"
                         onClick={() => handleDelete(user._id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -272,21 +272,21 @@ const UserManagement = () => {
                   </div>
                   <div>{renderRoleBadge(user.role)}</div>
                 </div>
-                
+
                 <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
                   <div className="text-xs text-gray-500">
                     Status: {user.googleId ? <span className="text-green-600 font-semibold">Google Linked</span> : 'Unlinked'}
                   </div>
-                  
+
                   <div className="flex gap-1">
-                    <button 
+                    <button
                       onClick={() => openProfileModal(user)}
                       className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors bg-white shadow-sm"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     {(user.role === 'pending' || user.role === 'blocked') && (
-                      <button 
+                      <button
                         onClick={() => openVerifyModal(user)}
                         className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors bg-white shadow-sm"
                       >
@@ -294,14 +294,14 @@ const UserManagement = () => {
                       </button>
                     )}
                     {user.role !== 'superadmin' && user.role !== 'blocked' && (
-                      <button 
+                      <button
                         onClick={() => handleBlock(user._id)}
                         className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors bg-white shadow-sm"
                       >
                         <ShieldAlert className="w-4 h-4" />
                       </button>
                     )}
-                    <button 
+                    <button
                       onClick={() => handleDelete(user._id)}
                       className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors bg-white shadow-sm"
                     >
@@ -328,43 +328,43 @@ const UserManagement = () => {
             <form onSubmit={handleAddUser} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input 
+                <input
                   type="text" required value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-200 focus:border-purple-500 outline-none"
                   placeholder="e.g. John Doe"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                <input 
+                <input
                   type="email" required value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-200 focus:border-purple-500 outline-none"
                   placeholder="name@example.com"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Contact No (Optional)</label>
-                <input 
+                <input
                   type="text" value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-200 focus:border-purple-500 outline-none"
                   placeholder="+1 234 567 890"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                <select 
+                <select
                   required value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-purple-200 focus:border-purple-500 outline-none"
                 >
                   <option value="foreman">Foreman</option>
                   <option value="accountant">Accountant</option>
                 </select>
               </div>
-              
+
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border rounded-xl font-medium">Cancel</button>
                 <button type="submit" disabled={isLoading} className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-xl font-medium disabled:opacity-50">{isLoading ? 'Adding...' : 'Add User'}</button>
@@ -390,33 +390,33 @@ const UserManagement = () => {
             <form onSubmit={handleVerifySubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Verify Full Name</label>
-                <input 
+                <input
                   type="text" required value={verifyData.name}
-                  onChange={(e) => setVerifyData({...verifyData, name: e.target.value})}
+                  onChange={(e) => setVerifyData({ ...verifyData, name: e.target.value })}
                   className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-green-200 focus:border-green-500 outline-none"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Contact No</label>
-                <input 
+                <input
                   type="text" value={verifyData.phone}
-                  onChange={(e) => setVerifyData({...verifyData, phone: e.target.value})}
+                  onChange={(e) => setVerifyData({ ...verifyData, phone: e.target.value })}
                   className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-green-200 focus:border-green-500 outline-none"
                   placeholder="+1 234 567 890"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Assign Approval Role</label>
-                <select 
+                <select
                   required value={verifyData.role}
-                  onChange={(e) => setVerifyData({...verifyData, role: e.target.value})}
+                  onChange={(e) => setVerifyData({ ...verifyData, role: e.target.value })}
                   className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-green-200 focus:border-green-500 outline-none"
                 >
                   <option value="foreman">Approve as Foreman</option>
                   <option value="accountant">Approve as Accountant</option>
                 </select>
               </div>
-              
+
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setIsVerifyModalOpen(false)} className="flex-1 px-4 py-2 border rounded-xl font-medium">Cancel</button>
                 <button type="submit" disabled={isLoading} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-xl font-medium flex justify-center gap-2 disabled:opacity-50">
@@ -437,7 +437,7 @@ const UserManagement = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             {/* Added relative and z-10 here to fix the stacking context issue */}
             <div className="relative z-10 px-6 pb-6 text-center -mt-12">
               <div className="inline-block p-1 bg-white rounded-full shadow-lg mb-4">
@@ -449,7 +449,7 @@ const UserManagement = () => {
                   </div>
                 )}
               </div>
-              
+
               <h2 className="text-2xl font-bold text-gray-900">{selectedUser.name || 'Unknown User'}</h2>
               <div className="mt-1">{renderRoleBadge(selectedUser.role)}</div>
 
@@ -468,7 +468,7 @@ const UserManagement = () => {
                 </div>
               </div>
 
-              <button 
+              <button
                 onClick={() => setIsProfileModalOpen(false)}
                 className="mt-8 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition"
               >
