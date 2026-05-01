@@ -4,7 +4,7 @@ import useAuthStore from '../store/useAuthStore';
 import logo from '../assets/logo.jpg';
 
 const Login = () => {
-  const { isLoading, isAuthenticated, checkAuth } = useAuthStore();
+  const { isLoading, isAuthenticated, user, checkAuth } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -12,10 +12,12 @@ const Login = () => {
   }, [checkAuth]);
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      navigate('/dashboard');
+    if (!isLoading && isAuthenticated && user) {
+      if (['accountant', 'superadmin'].includes(user.role)) {
+        navigate('/dashboard');
+      }
     }
-  }, [isLoading, isAuthenticated, navigate]);
+  }, [isLoading, isAuthenticated, user, navigate]);
 
   const handleGoogleLogin = () => {
     // 1. Get base URL and trim any trailing slashes to avoid "api//auth"
