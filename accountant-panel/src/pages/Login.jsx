@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
 import logo from '../assets/logo.jpg';
 
 const Login = () => {
-  const { isLoading } = useAuthStore();
+  const { isLoading, isAuthenticated, checkAuth } = useAuthStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isLoading, isAuthenticated, navigate]);
 
   const handleGoogleLogin = () => {
     // 1. Get base URL and trim any trailing slashes to avoid "api//auth"
     const apiBase = (import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'https://lambawheels-backend-orcin.vercel.app/api').replace(/\/$/, "");
+
     
     // 2. Build the final URL
     const finalUrl = `${apiBase}/auth/google`;
