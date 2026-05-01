@@ -26,13 +26,13 @@ router.get('/google/callback',
     // Assuming frontend URLs are something like this
     const role = req.user.role;
     if (role === 'superadmin') {
-      res.redirect('http://localhost:5175/');
+      res.redirect(process.env.FRONTEND_URL_SUPERADMIN || 'https://superadmin-erp.vercel.app/');
     } else if (role === 'accountant') {
-      res.redirect('http://localhost:5173/');
+      res.redirect(process.env.FRONTEND_URL_ACCOUNTANT || 'https://accountant-erp.vercel.app/');
     } else if (role === 'foreman') {
-      res.redirect('http://localhost:5174/');
+      res.redirect(process.env.FRONTEND_URL_FOREMAN || 'https://foremen-erp.vercel.app/');
     } else {
-      res.redirect('http://localhost:5174/pending');
+      res.redirect(process.env.FRONTEND_URL_FOREMAN ? `${process.env.FRONTEND_URL_FOREMAN}/pending` : 'https://foremen-erp.vercel.app/pending');
     }
   }
 );
