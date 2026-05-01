@@ -22,10 +22,23 @@ const defaultFrontendUrls = [
   'http://localhost:5174',
   'http://localhost:5175'
 ];
-const frontendUrls = process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : defaultFrontendUrls;
+
+const frontendUrls = process.env.FRONTEND_URLS 
+  ? process.env.FRONTEND_URLS.split(',').map(url => url.trim()) 
+  : defaultFrontendUrls;
+
 app.use(cors({
-  origin: frontendUrls,
-  credentials: true
+  origin: function (origin, callback) {
+    if (!origin || frontendUrls.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin);
+      callback(null, false); // Return false instead of error to avoid crashing
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
 }));
 
 app.use(express.json());
