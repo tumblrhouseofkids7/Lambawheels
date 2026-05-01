@@ -14,7 +14,15 @@ require('./config/passport');
 const app = express();
 
 // Middleware
-const frontendUrls = process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : [];
+const defaultFrontendUrls = [
+  'https://superadmin-erp.vercel.app',
+  'https://accountant-erp.vercel.app',
+  'https://foremen-erp.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175'
+];
+const frontendUrls = process.env.FRONTEND_URLS ? process.env.FRONTEND_URLS.split(',') : defaultFrontendUrls;
 app.use(cors({
   origin: frontendUrls,
   credentials: true
