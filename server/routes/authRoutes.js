@@ -25,14 +25,16 @@ router.get('/google/callback',
     // Redirect based on role
     // Assuming frontend URLs are something like this
     const role = req.user.role;
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     if (role === 'superadmin') {
-      res.redirect(process.env.FRONTEND_URL_SUPERADMIN || 'https://superadmin-erp.vercel.app/');
+      res.redirect(isProduction ? (process.env.FRONTEND_URL_SUPERADMIN || 'https://superadmin-erp.vercel.app/') : 'http://localhost:5175/');
     } else if (role === 'accountant') {
-      res.redirect(process.env.FRONTEND_URL_ACCOUNTANT || 'https://accountant-erp.vercel.app/');
+      res.redirect(isProduction ? (process.env.FRONTEND_URL_ACCOUNTANT || 'https://accountant-erp.vercel.app/') : 'http://localhost:5173/');
     } else if (role === 'foreman') {
-      res.redirect(process.env.FRONTEND_URL_FOREMAN || 'https://foremen-erp.vercel.app/');
+      res.redirect(isProduction ? (process.env.FRONTEND_URL_FOREMAN || 'https://foremen-erp.vercel.app/') : 'http://localhost:5174/');
     } else {
-      res.redirect(process.env.FRONTEND_URL_FOREMAN ? `${process.env.FRONTEND_URL_FOREMAN}/pending` : 'https://foremen-erp.vercel.app/pending');
+      res.redirect(isProduction ? (process.env.FRONTEND_URL_FOREMAN ? `${process.env.FRONTEND_URL_FOREMAN}/pending` : 'https://foremen-erp.vercel.app/pending') : 'http://localhost:5174/pending');
     }
   }
 );
