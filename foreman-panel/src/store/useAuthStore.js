@@ -23,6 +23,8 @@ const useAuthStore = create((set) => ({
     } catch {
     } finally {
       set({ user: null, isAuthenticated: false, error: null });
+      // Force a hard redirect so stale cookies / React state can't bounce back
+      window.location.href = '/login';
     }
   },
 }));

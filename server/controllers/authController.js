@@ -74,8 +74,12 @@ const loginUser = async (req, res) => {
 // @route   POST /api/auth/logout
 // @access  Private
 const logoutUser = (req, res) => {
+  // Must use the SAME sameSite/secure flags as when the cookie was set,
+  // otherwise browsers (especially in cross-origin Vercel deployments) ignore the clear.
   res.cookie('jwt', '', {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     expires: new Date(0),
   });
   res.status(200).json({ message: 'Logged out successfully' });

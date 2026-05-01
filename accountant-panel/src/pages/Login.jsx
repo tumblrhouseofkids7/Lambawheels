@@ -1,18 +1,9 @@
-import React, { useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import React from 'react';
 import useAuthStore from '../store/useAuthStore';
 import logo from '../assets/logo.jpg';
 
 const Login = () => {
-  const { isLoading, isAuthenticated, checkAuth } = useAuthStore();
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  const { isLoading } = useAuthStore();
 
   const handleGoogleLogin = () => {
     // 1. Get base URL and trim any trailing slashes to avoid "api//auth"
