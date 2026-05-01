@@ -16,7 +16,7 @@ const Login = () => {
 
   const handleGoogleLogin = () => {
     // 1. Get base URL and trim any trailing slashes to avoid "api//auth"
-    const apiBase = (import.meta.env.VITE_API_URL || 'https://lambawheels-backend-orcin.vercel.app/api').replace(/\/$/, "");
+    const apiBase = (import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'https://lambawheels-backend-orcin.vercel.app/api').replace(/\/$/, "");
     
     // 2. Build the final URL
     const finalUrl = `${apiBase}/auth/google`;

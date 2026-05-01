@@ -6,7 +6,7 @@ const Login = () => {
   const { isLoading } = useAuthStore();
 
   const handleGoogleLogin = () => {
-    const apiBase = import.meta.env.VITE_API_URL || 'https://lambawheels-backend-orcin.vercel.app/api';
+    const apiBase = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'https://lambawheels-backend-orcin.vercel.app/api';
     window.location.href = `${apiBase}/auth/google`;
   };
 
