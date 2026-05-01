@@ -4,9 +4,6 @@ const { getUsers, createUser, deleteUser, updateUser, updateOwnProfile, uploadPr
 const { protect, authorizeRoles } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
-// Ensure uploads dir exists
-const fs = require('fs');
-if (!fs.existsSync('uploads')) fs.mkdirSync('uploads');
 
 // Profile routes (any logged-in user)
 router.route('/profile')
