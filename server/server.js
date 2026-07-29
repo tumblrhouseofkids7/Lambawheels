@@ -6,7 +6,7 @@ const passport = require('passport');
 const connectDB = require('./config/db');
 
 // Connect to database
-connectDB();
+connectDB().catch(err => console.error("Initial DB Connection Failed:", err.message));
 
 // Passport config
 require('./config/passport');
