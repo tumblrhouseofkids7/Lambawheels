@@ -6,13 +6,19 @@ import useShiftStore from '../store/useShiftStore';
 
 const Dashboard = () => {
   const { user } = useAuthStore();
-  const { activeShift, fetchActiveShift, startShift, endShift, isLoading } = useShiftStore();
+  const { activeShift, fetchActiveShift, startShift, endShift, resumeShift, isLoading, selectedDate, setSelectedDate } = useShiftStore();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [shiftType, setShiftType] = useState('Day');
 
   useEffect(() => {
     fetchActiveShift();
-  }, [fetchActiveShift]);
+  }, [fetchActiveShift, selectedDate]);
+
+  useEffect(() => {
+    if (activeShift && activeShift.status === 'Completed') {
+      setShiftType(activeShift.shiftType === 'Day' ? 'Night' : 'Day');
+    }
+  }, [activeShift]);
 
   // Live clock
   useEffect(() => {
@@ -41,6 +47,19 @@ const Dashboard = () => {
       {/* Time and Shift Header */}
       <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
         <h2 className="text-gray-500 font-bold mb-1">Welcome, {user?.name || 'Foreman'}!</h2>
+        
+        {/* Date Selector */}
+        <div className="mb-4 w-full max-w-xs">
+          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Working Date</label>
+          <input 
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            max={new Date().toISOString().split('T')[0]} // prevent future dates
+            className="w-full bg-gray-50 border border-gray-200 text-gray-800 font-bold rounded-xl px-4 py-2 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
         <div className="text-5xl font-black text-gray-900 mb-2 tracking-tight">
           {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
@@ -53,6 +72,7 @@ const Dashboard = () => {
           {isLoading && !activeShift ? (
             <div className="h-24 w-full bg-gray-100 animate-pulse rounded-2xl"></div>
           ) : activeShift ? (
+          <>
             <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -60,26 +80,66 @@ const Dashboard = () => {
                     <Activity className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Active Shift</p>
+                    <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">Shift Context</p>
                     <p className="text-lg font-black text-gray-900 leading-tight mt-0.5">{activeShift.shiftType}</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end">
-                   <div className="flex items-center gap-1.5 px-2 py-1 bg-green-100 text-green-700 rounded-lg text-[10px] font-bold">
-                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                     Live
+                   <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold ${activeShift.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'}`}>
+                     {activeShift.status === 'Active' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>}
+                     {activeShift.status}
                    </div>
                    <p className="text-xs text-gray-500 font-semibold mt-1">Started: {formatTime(activeShift.startTime || activeShift.date)}</p>
                 </div>
               </div>
-              <button 
-                onClick={handleEnd}
-                disabled={isLoading}
-                className="w-full bg-red-500 hover:bg-red-600 active:scale-95 text-white font-black py-3 rounded-xl shadow-md shadow-red-500/20 transition-all disabled:opacity-50"
-              >
-                {isLoading ? 'Ending...' : 'End Shift'}
-              </button>
+              {activeShift.status === 'Active' ? (
+                <button 
+                  onClick={handleEnd}
+                  disabled={isLoading}
+                  className="w-full bg-red-500 hover:bg-red-600 active:scale-95 text-white font-black py-3 rounded-xl shadow-md shadow-red-500/20 transition-all disabled:opacity-50"
+                >
+                  {isLoading ? 'Ending...' : 'End Shift'}
+                </button>
+              ) : (
+                <button 
+                  onClick={() => resumeShift(activeShift._id)}
+                  disabled={isLoading}
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white font-black py-3 rounded-xl shadow-md shadow-yellow-500/20 transition-all disabled:opacity-50 mt-2"
+                >
+                  {isLoading ? 'Resuming...' : `Resume ${activeShift.shiftType} Shift`}
+                </button>
+              )}
             </div>
+
+            {/* If the current shift is completed, show option to start the OTHER shift type */}
+            {activeShift && activeShift.status === 'Completed' && (
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 mt-4">
+                <p className="text-sm font-bold text-gray-500 mb-3 uppercase tracking-wider">Start Another Shift</p>
+                <div className="flex bg-gray-200 p-1 rounded-xl mb-3">
+                  <button
+                    className={`flex-1 py-2.5 text-sm font-black rounded-lg transition-all ${shiftType === 'Day' ? 'bg-white shadow text-orange-500' : 'text-gray-500'}`}
+                    onClick={() => setShiftType('Day')}
+                  >
+                    ☀️ Day
+                  </button>
+                  <button
+                    className={`flex-1 py-2.5 text-sm font-black rounded-lg transition-all ${shiftType === 'Night' ? 'bg-gray-900 shadow text-indigo-300' : 'text-gray-500'}`}
+                    onClick={() => setShiftType('Night')}
+                  >
+                    🌙 Night
+                  </button>
+                </div>
+                
+                <button 
+                  onClick={handleStart}
+                  disabled={isLoading}
+                  className={`w-full font-black py-3.5 rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50 text-white ${shiftType === 'Day' ? 'bg-orange-500 shadow-orange-500/30' : 'bg-indigo-600 shadow-indigo-600/30'}`}
+                >
+                  {isLoading ? 'Starting...' : `Start ${shiftType} Shift`}
+                </button>
+              </div>
+            )}
+          </>
           ) : (
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
               <p className="text-sm font-bold text-gray-500 mb-3 uppercase tracking-wider">Start a New Shift</p>

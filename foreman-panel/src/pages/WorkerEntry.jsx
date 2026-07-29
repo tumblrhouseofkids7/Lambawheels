@@ -10,7 +10,7 @@ const WorkerEntry = () => {
   const navigate = useNavigate();
   const { labours, fetchLabours } = useLabourStore();
   const { productions, fetchProductions, addProduction, updateProduction, isLoading: isProductionLoading } = useProductionStore();
-  const { activeShift, fetchActiveShift } = useShiftStore();
+  const { activeShift, fetchActiveShift, selectedDate } = useShiftStore();
 
   const [existingProductionId, setExistingProductionId] = useState(null);
   const [selectedRejects, setSelectedRejects] = useState([]);
@@ -40,14 +40,12 @@ const WorkerEntry = () => {
   // Find the labour from store
   const labour = labours.find(l => l._id === id);
 
-  // Fetch data on mount
+  // Fetch data on mount and when selectedDate changes
   useEffect(() => {
     fetchLabours();
     fetchActiveShift();
-    const today = new Date();
-    const dateString = today.toISOString().split('T')[0];
-    fetchProductions(dateString);
-  }, [fetchLabours, fetchProductions, fetchActiveShift]);
+    fetchProductions(selectedDate);
+  }, [fetchLabours, fetchProductions, fetchActiveShift, selectedDate]);
 
   // Once labour and productions are loaded, populate form
   useEffect(() => {
@@ -175,6 +173,7 @@ const WorkerEntry = () => {
     try {
       const payload = {
         labour: labour._id,
+        date: selectedDate, // Save with the currently selected date, not just 'today'
         ...formData
       };
 
@@ -303,8 +302,11 @@ const WorkerEntry = () => {
               )}
             </div>
           </div>
-          <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${activeShift.shiftType === 'Day' ? 'bg-orange-100 text-orange-700' : 'bg-indigo-100 text-indigo-700'}`}>
-            {activeShift.shiftType} Shift
+          <div className="flex flex-col items-end gap-1">
+            <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${activeShift.status === 'Completed' ? 'bg-gray-200 text-gray-700' : activeShift.shiftType === 'Day' ? 'bg-orange-100 text-orange-700' : 'bg-indigo-100 text-indigo-700'}`}>
+              {activeShift.status === 'Completed' ? 'Completed' : 'Active'} {activeShift.shiftType} Shift
+            </div>
+            <div className="text-[10px] font-bold text-gray-400">{selectedDate}</div>
           </div>
         </div>
         {existingProductionId && (
@@ -324,8 +326,9 @@ const WorkerEntry = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Shift</label>
-                <div className={`w-full px-4 py-3.5 border rounded-xl font-bold text-base min-h-[48px] flex items-center ${activeShift.shiftType === 'Day' ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-indigo-50 border-indigo-200 text-indigo-700'}`}>
-                  {activeShift.shiftType === 'Day' ? '☀️ Day' : '🌙 Night'}
+                <div className={`w-full px-4 py-3.5 border rounded-xl font-bold text-base min-h-[48px] flex flex-col justify-center ${activeShift.status === 'Completed' ? 'bg-gray-100 border-gray-300 text-gray-700' : activeShift.shiftType === 'Day' ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-indigo-50 border-indigo-200 text-indigo-700'}`}>
+                  <span>{activeShift.shiftType === 'Day' ? '☀️ Day' : '🌙 Night'}</span>
+                  <span className="text-[10px] font-medium mt-0.5 opacity-70 uppercase tracking-widest">{selectedDate} {activeShift.status === 'Completed' ? '(Completed)' : ''}</span>
                 </div>
               </div>
               <div>

@@ -13,7 +13,7 @@ const norm = (r) => (r || 'Labour').trim().toLowerCase();
 const Avatar = ({ user, size = 'md' }) => {
   const sz = size === 'lg' ? 'w-20 h-20 text-3xl' : size === 'sm' ? 'w-8 h-8 text-xs' : 'w-11 h-11 text-base';
   return user?.profilePic
-    ? <img src={user.profilePic} alt={user.name} className={`${sz} rounded-full object-cover ring-2 ring-white`} />
+    ? <img src={user.profilePic} alt={user.name} referrerPolicy="no-referrer" className={`${sz} rounded-full object-cover ring-2 ring-white`} />
     : <div className={`${sz} rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center text-white font-bold ring-2 ring-white`}>{(user?.name||'?')[0].toUpperCase()}</div>;
 };
 

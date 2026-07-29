@@ -35,7 +35,7 @@ const UserManagement = () => {
     setConfirmModal({
       isOpen: true,
       title: 'Delete User',
-      message: 'Are you sure you want to delete this user?',
+      message: 'Are you sure you want to permanently delete this user? This will also delete ALL their shifts, production entries, workers, dispatches, and salaries. This action cannot be undone.',
       confirmText: 'Delete',
       type: 'danger',
       onConfirm: async () => {
@@ -185,7 +185,7 @@ const UserManagement = () => {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         {user.profilePic ? (
-                          <img src={user.profilePic} alt={user.name} className="w-8 h-8 rounded-full" />
+                          <img src={user.profilePic} alt={user.name} referrerPolicy="no-referrer" className="w-8 h-8 rounded-full" />
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700">
                             <UserIcon className="w-4 h-4" />
@@ -259,7 +259,7 @@ const UserManagement = () => {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
                     {user.profilePic ? (
-                      <img src={user.profilePic} alt={user.name} className="w-12 h-12 rounded-full" />
+                      <img src={user.profilePic} alt={user.name} referrerPolicy="no-referrer" className="w-12 h-12 rounded-full" />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-700">
                         <UserIcon className="w-6 h-6" />
@@ -442,7 +442,7 @@ const UserManagement = () => {
             <div className="relative z-10 px-6 pb-6 text-center -mt-12">
               <div className="inline-block p-1 bg-white rounded-full shadow-lg mb-4">
                 {selectedUser.profilePic ? (
-                  <img src={selectedUser.profilePic} alt={selectedUser.name} className="w-24 h-24 rounded-full object-cover" />
+                  <img src={selectedUser.profilePic} alt={selectedUser.name} referrerPolicy="no-referrer" className="w-24 h-24 rounded-full object-cover" />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-purple-100 flex items-center justify-center text-purple-700">
                     <UserIcon className="w-12 h-12" />

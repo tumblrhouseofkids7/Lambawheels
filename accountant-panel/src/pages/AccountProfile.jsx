@@ -89,7 +89,7 @@ const AccountProfile = () => {
             <div className="relative group">
               <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                 {previewUrl ? (
-                  <img src={previewUrl} alt="Profile" className="w-full h-full object-cover" />
+                  <img src={previewUrl} alt="Profile" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 ) : (
                   <User size={40} className="text-gray-400" />
                 )}

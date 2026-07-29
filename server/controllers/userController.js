@@ -1,6 +1,10 @@
 const User = require('../models/User');
 const Labour = require('../models/Labour');
 const Dispatch = require('../models/Dispatch');
+const Shift = require('../models/Shift');
+const Production = require('../models/Production');
+const Salary = require('../models/Salary');
+const Advance = require('../models/Advance');
 
 // @desc    Get all users (excluding current superadmin)
 // @route   GET /api/users
@@ -65,8 +69,16 @@ const deleteUser = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (user) {
+      // Cascade delete everything related to this foreman
+      await Shift.deleteMany({ foreman: user._id });
+      await Production.deleteMany({ foreman: user._id });
+      await Labour.deleteMany({ assignedForeman: user._id });
+      await Dispatch.deleteMany({ foremanId: user._id });
+      await Salary.deleteMany({ foreman: user._id });
+      await Advance.deleteMany({ foreman: user._id });
+
       await user.deleteOne();
-      res.json({ message: 'User removed' });
+      res.json({ message: 'User and all related data removed' });
     } else {
       res.status(404).json({ message: 'User not found' });
     }

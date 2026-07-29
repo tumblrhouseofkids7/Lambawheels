@@ -12,13 +12,16 @@ import toast from 'react-hot-toast';
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
+import useShiftStore from '../store/useShiftStore';
+
 const Thakdar = () => {
   const { user } = useAuthStore();
   const { dispatches, isLoading, fetchDispatches, addEntry, renameWorker, deleteWorker, submitShift } = useDispatchStore();
   const { labours, fetchLabours } = useLabourStore();
+  const { activeShift, selectedDate } = useShiftStore();
 
-  const [date, setDate] = useState(todayStr());
-  const [shift, setShift] = useState('Day');
+  const shift = activeShift?.shiftType || 'Day';
+  const date = selectedDate;
 
 
   // Cell inputs for quantities: key is `${dispatchId}-${workerName}`
@@ -177,8 +180,13 @@ const Thakdar = () => {
           </div>
 
           <div className="mb-3">
-            <input type="date" value={date} onChange={e => setDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-black transition-all font-semibold" />
+            <div className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm bg-gray-100 text-gray-600 font-bold flex items-center justify-between">
+              <span>Date: {date}</span>
+              <span>Shift: {shift}</span>
+            </div>
+            {!activeShift && (
+              <p className="text-xs text-red-500 mt-2 font-bold">Please start a shift on the dashboard first.</p>
+            )}
           </div>
 
 

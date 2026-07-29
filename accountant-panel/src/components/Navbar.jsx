@@ -41,7 +41,7 @@ const Navbar = () => {
         className="w-9 h-9 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center shadow-lg shadow-black/50 cursor-pointer hover:ring-2 hover:ring-gray-300 transition-all"
       >
         {user?.profilePic ? (
-           <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover rounded-xl" />
+           <img src={user.profilePic} alt="Profile" referrerPolicy="no-referrer" className="w-full h-full object-cover rounded-xl" />
         ) : (
           <span className="text-white font-bold text-sm">
             {user?.name?.charAt(0)?.toUpperCase() || 'A'}

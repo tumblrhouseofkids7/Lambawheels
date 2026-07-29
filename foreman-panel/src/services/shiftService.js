@@ -15,8 +15,23 @@ export const endShift = async (id) => {
   return data;
 };
 
+export const resumeShift = async (id) => {
+  const { data } = await api.put(`/shifts/${id}/resume`);
+  return data;
+};
+
 export const getShiftHistory = async (date) => {
   const params = date ? { date } : {};
   const { data } = await api.get('/shifts/history', { params });
+  return data;
+};
+
+export const getMyShiftForDate = async (date) => {
+  const { data } = await api.get(`/shifts/my-shift?date=${date}`);
+  return data;
+};
+
+export const startShiftWithDate = async (shiftType, date) => {
+  const { data } = await api.post('/shifts', { shiftType, date });
   return data;
 };

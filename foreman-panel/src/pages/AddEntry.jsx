@@ -10,7 +10,7 @@ const AddEntry = () => {
   const navigate = useNavigate();
   const { labours, fetchLabours, addLabour, updateLabour, deleteLabour, isLoading: isLabourLoading } = useLabourStore();
   const { productions, fetchProductions } = useProductionStore();
-  const { activeShift, fetchActiveShift } = useShiftStore();
+  const { activeShift, fetchActiveShift, selectedDate } = useShiftStore();
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [newLabourName, setNewLabourName] = useState('');
@@ -32,15 +32,12 @@ const AddEntry = () => {
   });
   const closeConfirmModal = () => setConfirmModal(prev => ({ ...prev, isOpen: false }));
 
-  // Fetch data on mount
+  // Fetch data on mount and when selectedDate changes
   useEffect(() => {
     fetchLabours();
     fetchActiveShift();
-
-    const today = new Date();
-    const dateString = today.toISOString().split('T')[0];
-    fetchProductions(dateString);
-  }, [fetchLabours, fetchProductions, fetchActiveShift]);
+    fetchProductions(selectedDate);
+  }, [fetchLabours, fetchProductions, fetchActiveShift, selectedDate]);
 
   // Live clock
   useEffect(() => {
@@ -101,19 +98,19 @@ const AddEntry = () => {
   return (
     <div className="space-y-4 md:space-y-8 animate-fade-in pb-8 max-w-7xl mx-auto">
       {/* Dashboard Header: Live Date & Time & Active Shift */}
-      <div className="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center relative overflow-hidden">
+      <div className="bg-white p-5 md:p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center relative overflow-hidden mb-6">
         {activeShift && (
-          <div className={`absolute top-0 left-0 w-full p-1.5 md:p-2 text-center text-[10px] md:text-sm font-bold text-white tracking-widest uppercase ${activeShift.shiftType === 'Day' ? 'bg-orange-500' : 'bg-indigo-600'}`}>
-            Active {activeShift.shiftType} Shift
+          <div className={`absolute top-0 left-0 w-full p-1.5 md:p-2 text-center text-[10px] md:text-sm font-bold text-white tracking-widest uppercase ${activeShift.status === 'Completed' ? 'bg-gray-600' : activeShift.shiftType === 'Day' ? 'bg-orange-500' : 'bg-indigo-600'}`}>
+            {activeShift.status === 'Completed' ? 'Completed' : 'Active'} {activeShift.shiftType} Shift
           </div>
         )}
         <div className="mt-4 md:mt-6 flex flex-col items-center">
-          <span className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Current Time</span>
-          <span className="text-3xl md:text-5xl font-black text-gray-800 tracking-tight">
-            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          <span className="text-xs md:text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Working Date</span>
+          <span className="text-2xl md:text-4xl font-black text-gray-800 tracking-tight">
+            {selectedDate}
           </span>
           <span className="text-sm md:text-base font-medium text-gray-500 mt-2">
-            {currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            Select workers below to view/edit their data for this date
           </span>
         </div>
       </div>
