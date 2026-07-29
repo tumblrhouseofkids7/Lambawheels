@@ -68,6 +68,17 @@ app.get('/', (req, res) => {
   res.send('Lamba Wheels ERP API is running...');
 });
 
+// Health check route for debugging env vars
+app.get('/api/health', (req, res) => {
+  res.json({
+    hasMongoUri: !!process.env.MONGO_URI,
+    hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
+    hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+    hasGoogleCallbackUrl: !!process.env.GOOGLE_CALLBACK_URL,
+    hasJwtSecret: !!process.env.JWT_SECRET
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
