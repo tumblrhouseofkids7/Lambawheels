@@ -17,8 +17,6 @@ const connectDB = async () => {
 
   if (!cached.promise) {
     const opts = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000,
       bufferTimeoutMS: 30000,
     };
