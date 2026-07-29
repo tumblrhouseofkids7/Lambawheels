@@ -79,6 +79,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// DB Test route
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const conn = await mongoose.createConnection(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000
+    }).asPromise();
+    res.json({ success: true, message: "Connected successfully!" });
+    conn.close();
+  } catch (error) {
+    res.json({ success: false, error: error.message, stack: error.stack });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
