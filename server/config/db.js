@@ -1,15 +1,38 @@
 const mongoose = require('mongoose');
 
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
 const connectDB = async () => {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!process.env.MONGO_URI) {
+    throw new Error("MONGO_URI environment variable is not defined. Please check your .env file or Vercel Environment Variables settings.");
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+    };
+
+    cached.promise = mongoose.connect(process.env.MONGO_URI, opts).then((mongoose) => {
+      console.log(`MongoDB Connected: ${mongoose.connection.host}`);
+      return mongoose;
+    });
+  }
+
   try {
-    if (!process.env.MONGO_URI) {
-      throw new Error("MONGO_URI environment variable is not defined. Please check your .env file or Vercel Environment Variables settings.");
-    }
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    cached.conn = await cached.promise;
+    return cached.conn;
   } catch (error) {
+    cached.promise = null;
     console.error(`Error connecting to MongoDB: ${error.message}`);
-    process.exit(1);
+    throw error;
   }
 };
 
