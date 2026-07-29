@@ -19,6 +19,8 @@ const connectDB = async () => {
     const opts = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 30000,
+      bufferTimeoutMS: 30000,
     };
 
     cached.promise = mongoose.connect(process.env.MONGO_URI, opts).then((mongoose) => {
