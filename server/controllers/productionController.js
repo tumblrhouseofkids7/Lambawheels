@@ -95,7 +95,7 @@ const addProduction = async (req, res) => {
       overtimeHours: overtimeHours || 0,
       advances: advances || 0,
       deductions: deductions || 0,
-      secondaryDieType,
+      secondaryDieType: secondaryDieType === '' ? null : secondaryDieType,
       secondaryTargetProduction: secondaryTargetProduction || 0,
       secondaryTotalProduction: secondaryTotalProduction || 0,
       secondaryTotalReject: secondaryTotalReject || 0,
