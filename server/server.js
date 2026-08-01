@@ -51,6 +51,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(passport.initialize());
 
+// Ensure DB is connected before handling any API routes
+// This is crucial for Serverless environments (like Vercel)
+app.use(async (req, res, next) => {
+  try {
+    const connectDB = require('./config/db');
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("DB Connection Error in Middleware:", error);
+    res.status(500).json({ success: false, message: "Database connection failed", error: error.message });
+  }
+});
+
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
