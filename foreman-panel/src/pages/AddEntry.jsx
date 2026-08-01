@@ -21,6 +21,7 @@ const AddEntry = () => {
   const [editLabourGender, setEditLabourGender] = useState('Male');
 
   const [filterType, setFilterType] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -125,23 +126,46 @@ const AddEntry = () => {
 
       {/* Workers Grid */}
       <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 gap-4">
-          <h3 className="text-lg md:text-xl font-bold text-gray-800">Tap Worker to Add Entry</h3>
-          <div className="flex flex-wrap gap-2">
-            {['All', 'Simple', '4 Die', '6 Die'].map(type => (
-              <button
-                key={type}
-                onClick={() => setFilterType(type)}
-                className={`px-3 py-1.5 text-sm font-bold rounded-lg transition-all ${filterType === type ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-              >
-                {type}
-              </button>
-            ))}
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-4 md:mb-6 gap-4">
+          <h3 className="text-lg md:text-xl font-bold text-gray-800 shrink-0">Tap Worker to Add Entry</h3>
+          
+          <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+            {/* Search Bar */}
+            <div className="relative w-full sm:w-48 md:w-56">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search worker..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 sm:py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-gray-50/50 transition-all"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {['All', 'Simple', '4 Die', '6 Die'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => setFilterType(type)}
+                  className={`px-3 py-2 sm:py-1.5 text-sm font-bold rounded-lg transition-all ${filterType === type ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
           {labours.filter(l => {
             if (l.role && l.role.toLowerCase() !== 'labour') return false;
+            
+            // Search filter
+            if (searchQuery && !l.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+              return false;
+            }
+
             if (filterType === 'All') return true;
             if (filterType === 'Simple') return !l.labourType || l.labourType === 'Simple' || l.labourType === null;
             return l.labourType === filterType;
