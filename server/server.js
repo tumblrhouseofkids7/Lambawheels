@@ -33,7 +33,7 @@ app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     const cleanOrigin = origin.replace(/\/$/, '');
-    if (frontendUrls.includes(cleanOrigin) || frontendUrls.includes('*')) {
+    if (frontendUrls.includes(cleanOrigin) || frontendUrls.includes('*') || cleanOrigin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
       console.log('Blocked by CORS:', origin);
