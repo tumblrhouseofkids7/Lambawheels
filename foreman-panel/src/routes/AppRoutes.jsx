@@ -12,6 +12,7 @@ import Pending from '../pages/Pending';
 import Profile from '../pages/Profile';
 import Team from '../pages/Team';
 import TotalProduction from '../pages/TotalProduction';
+import IncomingArticles from '../pages/IncomingArticles';
 
 const AppRoutes = () => {
   return (
@@ -29,6 +30,7 @@ const AppRoutes = () => {
           <Route path="/team" element={<Team />} />
           <Route path="/total-production" element={<TotalProduction />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/incoming-articles" element={<IncomingArticles />} />
         </Route>
       </Route>
       

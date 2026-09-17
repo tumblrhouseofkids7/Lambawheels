@@ -16,8 +16,8 @@ const labourSchema = new mongoose.Schema({
   },
   labourType: {
     type: String,
-    enum: ['Simple', '4 Die', '6 Die'],
-    default: 'Simple'  // 'Simple' = no type/default, '4 Die' or '6 Die' = upgraded labour
+    enum: ['Simple', '4 Die', '6 Die', 'Molding'],
+    default: 'Simple'  // 'Simple' = no type/default, others = upgraded labour
   },
   assignedForeman: {
     type: mongoose.Schema.Types.ObjectId,

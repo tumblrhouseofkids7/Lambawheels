@@ -67,7 +67,7 @@ const productionSchema = new mongoose.Schema({
   },
   secondaryDieType: {
     type: String,
-    enum: ['4 Die', '6 Die', null]
+    enum: ['4 Die', '6 Die', 'Molding', null]
   },
   secondaryTargetProduction: {
     type: Number,

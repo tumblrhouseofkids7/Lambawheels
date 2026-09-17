@@ -145,7 +145,7 @@ const AddEntry = () => {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {['All', 'Simple', '4 Die', '6 Die'].map(type => (
+              {['All', 'Simple', '4 Die', '6 Die', 'Molding'].map(type => (
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
@@ -196,9 +196,15 @@ const AddEntry = () => {
                     )}
                   </div>
                   {hasEntry && (
-                    <div className="flex items-center gap-1 text-green-600 text-xs font-bold mt-1">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                      Entry Done
+                    <div className="flex items-center justify-between mt-1.5 pr-1">
+                      <div className="flex items-center gap-1 text-green-600 text-xs font-bold">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                        Entry Done
+                      </div>
+                      <span className="text-[10px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        Edit
+                      </span>
                     </div>
                   )}
                 </div>

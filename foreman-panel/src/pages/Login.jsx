@@ -44,7 +44,7 @@ const Login = () => {
           />
           <div className="text-center">
             <h1 className="text-3xl font-black text-black tracking-tight">Lamba Wheels</h1>
-            <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mt-1">Foreman Portal</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mt-1">Operation Supervisor</p>
           </div>
         </div>
 

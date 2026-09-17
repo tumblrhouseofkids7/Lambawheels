@@ -204,8 +204,39 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* ── 3 Main Stat Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ── 4 Main Stat Cards ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Production */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 lg:p-5 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
+            <Activity size={22} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-0.5">Total Production</p>
+            <p className="text-gray-900 text-2xl lg:text-3xl font-extrabold leading-none truncate">
+              {summary?.totalProduction ? summary.totalProduction.toLocaleString() : 0}
+            </p>
+            <div className="flex flex-col gap-1.5 mt-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-100">
+                  Tyres: {summary?.tyreProduction ? summary.tyreProduction.toLocaleString() : 0}
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-gray-50 text-gray-600 rounded border border-gray-200">
+                  4-Die: {summary?.fourDieProduction ? summary.fourDieProduction.toLocaleString() : 0}
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.5 bg-gray-50 text-gray-600 rounded border border-gray-200">
+                  6-Die: {summary?.sixDieProduction ? summary.sixDieProduction.toLocaleString() : 0}
+                </span>
+              </div>
+              <div className="flex items-center">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-100">
+                  Molding: {summary?.moldingProduction ? summary.moldingProduction.toLocaleString() : 0}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Total Thakdar */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
           <div className="w-12 h-12 rounded-xl bg-zinc-900 flex items-center justify-center flex-shrink-0">
@@ -307,6 +338,7 @@ const Dashboard = () => {
               { label: 'Female Labours', value: labours.filter((l) => l.gender === 'Female' && (!l.role || l.role.toLowerCase() === 'labour')).length },
               { label: '4 Die Workers', value: labours.filter((l) => l.labourType === '4 Die').length },
               { label: '6 Die Workers', value: labours.filter((l) => l.labourType === '6 Die').length },
+              { label: 'Molding Workers', value: labours.filter((l) => l.labourType === 'Molding').length },
               { label: 'Male Thakdars', value: labours.filter((l) => l.gender === 'Male' && l.role?.toLowerCase() === 'thakdar').length },
               { label: 'Female Thakdars', value: labours.filter((l) => l.gender === 'Female' && l.role?.toLowerCase() === 'thakdar').length },
               { label: 'Total Foremen', value: totalForemanCount },

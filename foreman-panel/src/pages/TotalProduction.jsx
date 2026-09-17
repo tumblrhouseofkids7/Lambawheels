@@ -135,6 +135,7 @@ const TotalProduction = () => {
                 <option value="Simple">Simple</option>
                 <option value="4 Die">4 Die</option>
                 <option value="6 Die">6 Die</option>
+                <option value="Molding">Molding</option>
               </select>
             </div>
           </div>

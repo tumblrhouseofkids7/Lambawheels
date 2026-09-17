@@ -358,7 +358,7 @@ const WorkerEntry = () => {
                 <div className="border-t border-gray-100 pt-5">
                   <h4 className="text-base font-bold text-gray-800 mb-4">Production Details</h4>
 
-                  <div className={`grid grid-cols-1 ${(!labour?.labourType || labour.labourType === 'Simple') ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-4`}>
+                  <div className={`grid grid-cols-1 ${(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-4`}>
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Target</label>
                       <input type="number" name="targetProduction" value={formData.targetProduction} readOnly className="w-full px-4 py-3.5 bg-gray-200 border border-gray-300 rounded-xl focus:outline-none font-black text-xl text-gray-600 transition-all cursor-not-allowed" />
@@ -367,7 +367,7 @@ const WorkerEntry = () => {
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Total Prod</label>
                       <input type="number" name="totalProduction" value={formData.totalProduction} onChange={handleInputChange} min="0" className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-black text-xl transition-all" required />
                     </div>
-                    {(!labour?.labourType || labour.labourType === 'Simple') ? null : (
+                    {(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') ? null : (
                       <div>
                         <label className="block text-xs font-bold text-red-500 uppercase tracking-wider mb-2">Total Reject</label>
                         <input type="number" name="totalReject" value={formData.totalReject} onChange={handleInputChange} min="0" className="w-full px-4 py-3.5 bg-red-50 border border-red-200 rounded-xl focus:ring-2 focus:ring-red-400 outline-none font-black text-xl text-red-600 transition-all" />
@@ -375,7 +375,7 @@ const WorkerEntry = () => {
                     )}
                   </div>
 
-                  {(!labour?.labourType || labour.labourType === 'Simple') ? null : (
+                  {(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') ? null : (
                     <div className="mb-4">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Reject Categories</label>
                       <div className="flex flex-wrap gap-3 mb-3">
@@ -507,8 +507,8 @@ const WorkerEntry = () => {
                     </div>
                   </div>
 
-                  <div className={`grid grid-cols-1 ${(!labour?.labourType || labour.labourType === 'Simple') ? 'grid-cols-2' : ''} gap-4`}>
-                    {(!labour?.labourType || labour.labourType === 'Simple') && (
+                  <div className={`grid grid-cols-1 ${(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') ? 'grid-cols-2' : ''} gap-4`}>
+                    {(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') && (
                       <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Bonus Rate</label>
                         <select name="bonusRate" value={formData.bonusRate} onChange={handleInputChange} className="w-full px-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-base min-h-[48px] bg-white cursor-pointer">
@@ -541,7 +541,7 @@ const WorkerEntry = () => {
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
                           <span className="font-bold text-green-800 text-sm">Final Bonus</span>
-                          {(!labour?.labourType || labour.labourType === 'Simple') ? (
+                          {(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') ? (
                             <span className="text-xs text-green-600 mt-0.5">{formData.totalProduction} × ₹{formData.bonusRate}</span>
                           ) : (
                             <span className="text-xs text-green-600 mt-0.5">Primary{formData.secondaryDieType ? ' + Additional Work' : ' Bonus'}</span>

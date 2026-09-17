@@ -32,18 +32,18 @@ const useAuthStore = create((set) => ({
   updateProfile: async (userData) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       let finalData = { ...userData };
 
       // 1. If there's a profile picture, upload it first
       if (userData.profilePic instanceof File) {
         const formData = new FormData();
         formData.append('profilePic', userData.profilePic);
-        
+
         const picRes = await api.post('/users/profile/pic', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
-        
+
         // update finalData with the returned url if needed, though backend saves it.
         finalData.profilePic = picRes.data.profilePic;
       }
@@ -54,13 +54,13 @@ const useAuthStore = create((set) => ({
         phone: finalData.phone,
       });
 
-      set((state) => ({ 
-        user: { 
-          ...state.user, 
+      set((state) => ({
+        user: {
+          ...state.user,
           ...data,
-          profilePic: finalData.profilePic || state.user?.profilePic 
-        }, 
-        isLoading: false 
+          profilePic: finalData.profilePic || state.user?.profilePic
+        },
+        isLoading: false
       }));
       return { success: true };
     } catch (err) {

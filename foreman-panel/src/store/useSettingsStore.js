@@ -10,7 +10,7 @@ const translations = {
     history: 'History',
     logout: 'Logout',
     welcome: 'Welcome',
-    portal: 'Foreman Portal',
+    portal: 'Operation Supervisor',
   },
   hi: {
     dashboard: 'डैशबोर्ड',

@@ -15,7 +15,7 @@ const Header = ({ title }) => {
         <img src={logo} alt="Lamba Wheels" className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-contain bg-white shadow-sm" />
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">{title}</h1>
-          <p className="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider">{t('portal') || 'Foreman Portal'}</p>
+          <p className="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider">{t('portal') || 'Operation Supervisor'}</p>
         </div>
       </div>
       

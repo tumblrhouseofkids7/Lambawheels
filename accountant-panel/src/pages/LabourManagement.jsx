@@ -247,7 +247,7 @@ const LabourManagement = () => {
                     <span className="ml-1 text-gray-400 normal-case font-normal">(optional)</span>
                   </label>
                   <div className="flex gap-2">
-                    {[{ label: 'Simple', value: null }, { label: '4 Die', value: '4 Die' }, { label: '6 Die', value: '6 Die' }].map((opt) => (
+                    {[{ label: 'Simple', value: null }, { label: '4 Die', value: '4 Die' }, { label: '6 Die', value: '6 Die' }, { label: 'Molding', value: 'Molding' }].map((opt) => (
                       <button
                         type="button"
                         key={opt.label}

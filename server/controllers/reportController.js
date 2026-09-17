@@ -19,11 +19,35 @@ const getDashboardSummary = async (req, res) => {
 
     const productionStats = await Production.aggregate([
       {
+        $lookup: {
+          from: 'labours',
+          localField: 'labour',
+          foreignField: '_id',
+          as: 'labourDetails'
+        }
+      },
+      { $unwind: { path: '$labourDetails', preserveNullAndEmptyArrays: true } },
+      {
         $group: {
           _id: null,
           totalProduction: { $sum: '$netProduction' },
           totalSalary: { $sum: '$finalSalary' },
-          count: { $sum: 1 }
+          count: { $sum: 1 },
+          moldingProduction: {
+            $sum: {
+              $cond: [ { $eq: ['$labourDetails.labourType', 'Molding'] }, '$netProduction', 0 ]
+            }
+          },
+          fourDieProduction: {
+            $sum: {
+              $cond: [ { $eq: ['$labourDetails.labourType', '4 Die'] }, '$netProduction', 0 ]
+            }
+          },
+          sixDieProduction: {
+            $sum: {
+              $cond: [ { $eq: ['$labourDetails.labourType', '6 Die'] }, '$netProduction', 0 ]
+            }
+          }
         }
       }
     ]);
@@ -32,6 +56,10 @@ const getDashboardSummary = async (req, res) => {
     const totalSalary = productionStats.length > 0 ? productionStats[0].totalSalary : 0;
     const productionCount = productionStats.length > 0 ? productionStats[0].count : 0;
     const avgProduction = productionCount > 0 ? totalProduction / productionCount : 0;
+    const moldingProduction = productionStats.length > 0 ? productionStats[0].moldingProduction : 0;
+    const fourDieProduction = productionStats.length > 0 ? productionStats[0].fourDieProduction : 0;
+    const sixDieProduction = productionStats.length > 0 ? productionStats[0].sixDieProduction : 0;
+    const tyreProduction = totalProduction - moldingProduction;
 
     res.json({
       totalLabours,
@@ -39,7 +67,11 @@ const getDashboardSummary = async (req, res) => {
       totalThakdar,
       totalProduction,
       totalSalary,
-      avgProduction
+      avgProduction,
+      moldingProduction,
+      tyreProduction,
+      fourDieProduction,
+      sixDieProduction
     });
   } catch (error) {
     console.error(error);

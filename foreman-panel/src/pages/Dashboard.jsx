@@ -1,18 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, FileText, Truck, ChevronRight, Activity, Users } from 'lucide-react';
+import { Clock, FileText, Truck, ChevronRight, Activity, Users, Package } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import useShiftStore from '../store/useShiftStore';
+import useProductionStore from '../store/useProductionStore';
 
 const Dashboard = () => {
   const { user } = useAuthStore();
   const { activeShift, fetchActiveShift, startShift, endShift, resumeShift, isLoading, selectedDate, setSelectedDate } = useShiftStore();
+  const { productions, fetchProductions } = useProductionStore();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [shiftType, setShiftType] = useState('Day');
 
   useEffect(() => {
     fetchActiveShift();
-  }, [fetchActiveShift, selectedDate]);
+    fetchProductions(selectedDate);
+  }, [fetchActiveShift, fetchProductions, selectedDate]);
+
+  const totalProd = productions.reduce((sum, p) => sum + (p.netProduction || 0), 0);
+  const moldingProd = productions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.netProduction || 0), 0);
+  const fourDieProd = productions.filter(p => p.labour?.labourType === '4 Die').reduce((sum, p) => sum + (p.netProduction || 0), 0);
+  const sixDieProd = productions.filter(p => p.labour?.labourType === '6 Die').reduce((sum, p) => sum + (p.netProduction || 0), 0);
+  const tyreProd = totalProd - moldingProd;
 
   useEffect(() => {
     if (activeShift && activeShift.status === 'Completed') {
@@ -170,6 +179,30 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Total Production Widget */}
+      <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+          <h3 className="text-gray-500 font-bold text-xs uppercase tracking-wider mb-1.5">Today's Production</h3>
+          <div className="text-3xl font-black text-gray-900 leading-none">{totalProd.toLocaleString()}</div>
+        </div>
+        <div className="flex flex-col gap-2 min-w-[120px]">
+          <div className="bg-blue-50 text-blue-700 px-2.5 py-1.5 rounded-lg border border-blue-100 flex flex-col gap-1">
+             <div className="flex items-center justify-between gap-3">
+               <span className="text-[10px] font-bold uppercase">Tyres</span>
+               <span className="text-sm font-black">{tyreProd.toLocaleString()}</span>
+             </div>
+             <div className="flex items-center justify-between gap-2 text-[9px] font-semibold text-blue-600/80 pt-0.5 border-t border-blue-200/50">
+                <span>4-Die: {fourDieProd.toLocaleString()}</span>
+                <span>6-Die: {sixDieProd.toLocaleString()}</span>
+             </div>
+          </div>
+          <div className="bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg border border-purple-100 flex items-center justify-between gap-3">
+             <span className="text-[10px] font-bold uppercase">Molding</span>
+             <span className="text-sm font-black">{moldingProd.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
       {/* Main Action Buttons */}
       <div className="grid grid-cols-1 gap-4">
         <Link to="/add-entry" className="active:scale-95 transition-transform bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-3xl p-6 flex items-center gap-4 shadow-lg shadow-emerald-500/30 border border-emerald-400/50">
@@ -203,6 +236,17 @@ const Dashboard = () => {
              <p className="text-violet-100 text-sm font-medium">Add labour & thekedars</p>
           </div>
           <ChevronRight className="w-8 h-8 text-violet-100" />
+        </Link>
+
+        <Link to="/incoming-articles" className="active:scale-95 transition-transform bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl p-6 flex items-center gap-4 shadow-lg shadow-blue-500/30 border border-blue-400/50">
+          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-sm">
+             <Package className="w-8 h-8 text-white" />
+          </div>
+          <div className="flex-1 text-left">
+             <h3 className="text-2xl font-black mb-1">Incoming Articles</h3>
+             <p className="text-blue-100 text-sm font-medium">Record incoming items</p>
+          </div>
+          <ChevronRight className="w-8 h-8 text-blue-100" />
         </Link>
       </div>
     </div>
