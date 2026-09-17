@@ -78,8 +78,8 @@ const logoutUser = (req, res) => {
   // otherwise browsers (especially in cross-origin Vercel deployments) ignore the clear.
   res.cookie('jwt', '', {
     httpOnly: true,
-    secure: true,
-    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     expires: new Date(0),
   });
   res.status(200).json({ message: 'Logged out successfully' });

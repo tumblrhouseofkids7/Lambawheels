@@ -6,6 +6,16 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
   const { user, isAuthenticated, isLoading, checkAuth } = useAuthStore();
 
   useEffect(() => {
+    // Intercept token from URL query params (if redirected from backend)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      localStorage.setItem('token', token);
+      // Clean up the URL so the token isn't visible in the address bar
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     checkAuth();
   }, [checkAuth]);
 

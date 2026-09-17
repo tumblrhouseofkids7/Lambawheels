@@ -24,6 +24,7 @@ const useAuthStore = create((set) => ({
       // ignore
     } finally {
       set({ user: null, isAuthenticated: false, error: null });
+      localStorage.removeItem('token');
       // Force a hard redirect so stale cookies / React state can't bounce back
       window.location.href = '/login';
     }

@@ -19,22 +19,27 @@ router.get('/google',
 router.get('/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   (req, res) => {
-    // Successful authentication
-    generateToken(res, req.user._id, req.user.role);
+    const token = generateToken(res, req.user._id, req.user.role);
     
     // Redirect based on role
     // Assuming frontend URLs are something like this
     const role = req.user.role;
     const isProduction = process.env.NODE_ENV === 'production';
     
+    // Helper function to append token to URL
+    const appendToken = (url) => {
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url.replace(/\/$/, '')}${separator}token=${token}`;
+    };
+    
     if (role === 'superadmin') {
-      res.redirect(isProduction ? (process.env.FRONTEND_URL_SUPERADMIN || 'https://superadmin-erp.vercel.app/') : 'http://localhost:5175/');
+      res.redirect(isProduction ? appendToken(process.env.FRONTEND_URL_SUPERADMIN || 'https://superadmin-erp.vercel.app') : appendToken('http://localhost:5175'));
     } else if (role === 'accountant') {
-      res.redirect(isProduction ? (process.env.FRONTEND_URL_ACCOUNTANT || 'https://accountant-erp.vercel.app/') : 'http://localhost:5173/');
+      res.redirect(isProduction ? appendToken(process.env.FRONTEND_URL_ACCOUNTANT || 'https://accountant-erp.vercel.app') : appendToken('http://localhost:5173'));
     } else if (role === 'foreman') {
-      res.redirect(isProduction ? (process.env.FRONTEND_URL_FOREMAN || 'https://foremen-erp.vercel.app/') : 'http://localhost:5174/');
+      res.redirect(isProduction ? appendToken(process.env.FRONTEND_URL_FOREMAN || 'https://foremen-erp.vercel.app') : appendToken('http://localhost:5174'));
     } else {
-      res.redirect(isProduction ? (process.env.FRONTEND_URL_FOREMAN ? `${process.env.FRONTEND_URL_FOREMAN}/pending` : 'https://foremen-erp.vercel.app/pending') : 'http://localhost:5174/pending');
+      res.redirect(isProduction ? appendToken(process.env.FRONTEND_URL_FOREMAN ? `${process.env.FRONTEND_URL_FOREMAN}/pending` : 'https://foremen-erp.vercel.app/pending') : appendToken('http://localhost:5174/pending'));
     }
   }
 );

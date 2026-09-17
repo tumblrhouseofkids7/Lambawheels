@@ -1,13 +1,20 @@
 import axios from 'axios';
 
-// All requests send cookies automatically — no tokens in localStorage.
-// Auth redirects are handled by checkAuth() + ProtectedRoute, NOT here.
+// Auth state is now driven by localStorage Bearer tokens to fix Vercel cookie blocking.
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'https://lambawheels-backend-orcin.vercel.app/api',
-  withCredentials: true, // sends HTTP-only session cookie with every request
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export default api;
