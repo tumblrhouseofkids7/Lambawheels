@@ -17,10 +17,10 @@ const useIncomingArticleStore = create((set, get) => ({
     }
   },
 
-  fetchArticles: async () => {
+  fetchArticles: async (startDate, endDate) => {
     set({ isLoading: true, error: null });
     try {
-      const data = await incomingArticleService.getArticles();
+      const data = await incomingArticleService.getArticles(startDate, endDate);
       set({ articles: data, isLoading: false });
     } catch (err) {
       set({ error: err.message, isLoading: false });

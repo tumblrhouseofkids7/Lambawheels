@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import IncomingArticlesForm from '../components/IncomingArticlesForm';
+import IncomingArticlesList from '../components/IncomingArticlesList';
 
 const IncomingArticles = () => {
   return (
@@ -13,6 +14,7 @@ const IncomingArticles = () => {
         <h1 className="text-xl font-bold text-gray-800 md:hidden">Incoming Articles</h1>
       </div>
       <IncomingArticlesForm />
+      <IncomingArticlesList />
     </div>
   );
 };
