@@ -9,6 +9,7 @@ const incomingArticleSchema = new mongoose.Schema({
   purchasedFrom: { type: String, required: true },
   sgst: { type: Number, default: 0 },
   cgst: { type: Number, default: 0 },
+  igst: { type: Number, default: 0 },
   totalCost: { type: Number, required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });

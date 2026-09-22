@@ -28,32 +28,48 @@ const useIncomingArticleStore = create((set, get) => ({
     }
   },
 
-  addArticle: async (articleData) => {
+  addArticle: async (payload) => {
     set({ isLoading: true, error: null });
     try {
-      const newArticle = await incomingArticleService.createArticle(articleData);
+      const result = await incomingArticleService.createArticle(payload);
       
-      // Update suggestions if a new unique value is added
       const currentSuggestions = get().suggestions;
+      const newParticulars = new Set(currentSuggestions.particulars);
+      const newPurchasedFrom = new Set(currentSuggestions.purchasedFrom);
+
+      let articlesToAdd = [];
+
+      if (Array.isArray(result)) {
+        articlesToAdd = result;
+        if (payload.billDetails) {
+          newPurchasedFrom.add(payload.billDetails.purchasedFrom);
+        }
+        if (payload.articles) {
+          payload.articles.forEach(art => {
+            if (art.particulars) newParticulars.add(art.particulars);
+          });
+        }
+      } else {
+        articlesToAdd = [result];
+        newParticulars.add(payload.particulars);
+        newPurchasedFrom.add(payload.purchasedFrom);
+      }
+
       const newSuggestions = {
-        particulars: currentSuggestions.particulars.includes(articleData.particulars) 
-          ? currentSuggestions.particulars 
-          : [...currentSuggestions.particulars, articleData.particulars],
-        purchasedFrom: currentSuggestions.purchasedFrom.includes(articleData.purchasedFrom) 
-          ? currentSuggestions.purchasedFrom 
-          : [...currentSuggestions.purchasedFrom, articleData.purchasedFrom],
+        particulars: Array.from(newParticulars),
+        purchasedFrom: Array.from(newPurchasedFrom),
       };
 
       set({ 
-        articles: [newArticle, ...get().articles], 
+        articles: [...articlesToAdd, ...get().articles], 
         suggestions: newSuggestions,
         isLoading: false 
       });
-      toast.success('Incoming article added successfully');
+      toast.success('Incoming article(s) added successfully');
       return true;
     } catch (err) {
       set({ isLoading: false });
-      toast.error(err.response?.data?.message || 'Failed to add article');
+      toast.error(err.response?.data?.message || 'Failed to add article(s)');
       return false;
     }
   }
