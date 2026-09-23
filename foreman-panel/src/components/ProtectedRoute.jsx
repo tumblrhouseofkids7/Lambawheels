@@ -5,9 +5,6 @@ import useAuthStore from '../store/useAuthStore';
 const ProtectedRoute = ({ allowedRoles, children }) => {
   const { user, isAuthenticated, isLoading, checkAuth } = useAuthStore();
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
 
   if (isLoading) {
     return (

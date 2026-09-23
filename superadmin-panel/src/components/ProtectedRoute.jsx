@@ -6,10 +6,6 @@ import Loader from './Loader';
 const ProtectedRoute = ({ allowedRoles }) => {
   const { user, isAuthenticated, isLoading, checkAuth } = useAuthStore();
 
-  React.useEffect(() => {
-    checkAuth();
-  }, []);
-
   if (isLoading) {
     return <Loader />;
   }
