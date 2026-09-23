@@ -243,7 +243,7 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900">Dashboard Overview</h1>
           <p className="text-gray-500 text-sm mt-1">
@@ -251,6 +251,24 @@ const Dashboard = () => {
               ? <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse inline-block"/><span>Showing data for <strong>{dispatchDate}</strong></span></span>
               : 'Real-time snapshot of your operations.'}
           </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Filter by Date</label>
+          <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-100 transition-all">
+            <Calendar className="w-4 h-4 text-gray-400 shrink-0"/>
+            <input
+              type="date"
+              value={dispatchDate}
+              onChange={handleDateFilter}
+              max={new Date().toISOString().split('T')[0]}
+              className="text-sm font-semibold text-gray-800 outline-none bg-transparent w-full cursor-pointer"
+            />
+            {dispatchDate && (
+              <button onClick={handleClearDate} className="text-gray-400 hover:text-red-500 transition shrink-0 ml-1" title="Clear Date">
+                <X className="w-4 h-4"/>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -311,37 +329,20 @@ const Dashboard = () => {
 
         {/* Recent Dispatches */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-          {/* Header + Controls */}
-          <div className="p-4 border-b border-gray-100 space-y-3">
+          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ClipboardList className="w-4 h-4 text-teal-500"/>
               <h3 className="font-bold text-gray-900 text-sm">Recent Dispatches</h3>
             </div>
-            {/* Date filter + Download */}
-            <div className="flex gap-2">
-              <div className="flex items-center gap-1.5 flex-1 border border-gray-200 rounded-lg px-2.5 py-1.5">
-                <Filter className="w-3.5 h-3.5 text-gray-400 shrink-0"/>
-                <input
-                  type="date"
-                  value={dispatchDate}
-                  onChange={handleDateFilter}
-                  className="text-xs text-gray-700 outline-none bg-transparent w-full"
-                />
-                {dispatchDate && (
-                  <button onClick={handleClearDate} className="text-gray-400 hover:text-red-500 transition shrink-0">
-                    <X className="w-3 h-3"/>
-                  </button>
-                )}
-              </div>
-              <button
-                onClick={handleDownload}
-                title={dispatchDate ? `Download report for ${dispatchDate}` : 'Select a date to download'}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${dispatchDate ? 'bg-teal-600 hover:bg-teal-700 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-              >
-                <Download className="w-3.5 h-3.5"/>
-                PDF
-              </button>
-            </div>
+            {/* Download */}
+            <button
+              onClick={handleDownload}
+              title={dispatchDate ? `Download report for ${dispatchDate}` : 'Select a date to download'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${dispatchDate ? 'bg-teal-600 hover:bg-teal-700 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+            >
+              <Download className="w-3.5 h-3.5"/>
+              PDF Report
+            </button>
           </div>
 
           <div className="divide-y divide-gray-50 flex-1 overflow-y-auto max-h-72">

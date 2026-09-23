@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, X, ClipboardList, BarChart2, Truck, FileSpreadsheet, IndianRupee, Wallet, ChevronLeft, ChevronRight, HardHat } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, X, ClipboardList, BarChart2, Truck, FileSpreadsheet, ChevronLeft, ChevronRight, HardHat } from 'lucide-react';
 import logo from '../assets/logo.jpg';
 
 const Sidebar = ({ isOpen, setIsOpen, isMini, setIsMini }) => {
@@ -11,8 +11,6 @@ const Sidebar = ({ isOpen, setIsOpen, isMini, setIsMini }) => {
     { name: 'Attendance', path: '/attendance', icon: ClipboardList },
     { name: 'Dispatch', path: '/dispatch', icon: Truck },
     { name: 'Dispatch Salary', path: '/contractor-salary', icon: FileSpreadsheet },
-    { name: 'Salary', path: '/salary-sheet', icon: IndianRupee },
-    { name: 'Advances', path: '/advances', icon: Wallet },
     { name: 'Labour & Thakdar', path: '/labour-report', icon: HardHat },
     { name: 'Reports', path: '/reports', icon: FileText },
   ];

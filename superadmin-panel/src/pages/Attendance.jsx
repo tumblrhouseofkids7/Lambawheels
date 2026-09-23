@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Calendar, Loader2, Users, CheckCircle, XCircle,
-  Download, UserCheck, Briefcase, Wrench
+  Download, UserCheck, Briefcase, Wrench, Search
 } from 'lucide-react';
 import api from '../utils/axios';
 import toast from 'react-hot-toast';
@@ -50,6 +50,7 @@ const Attendance = () => {
   const [totalDays, setTotalDays] = useState(15);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('staff');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (startDate && endDate) fetchAttendance();
@@ -88,9 +89,20 @@ const Attendance = () => {
   const labourPresent = labourAttendance.reduce((s, l) => s + l.presentDays, 0);
   const labourAbsent  = labourAttendance.reduce((s, l) => s + l.absentDays, 0);
 
+  const filteredStaffAttendance = staffAttendance.filter(s => 
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.role.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  const filteredLabourAttendance = labourAttendance.filter(l => 
+    l.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (l.role && l.role.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (l.foreman && l.foreman.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   const staffByRole = {
-    foreman:    staffAttendance.filter(s => s.role === 'foreman'),
-    accountant: staffAttendance.filter(s => s.role === 'accountant'),
+    foreman:    filteredStaffAttendance.filter(s => s.role === 'foreman'),
+    accountant: filteredStaffAttendance.filter(s => s.role === 'accountant'),
   };
 
   const dateLabel = `${new Date(startDate + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} – ${new Date(endDate + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`;
@@ -189,19 +201,31 @@ const Attendance = () => {
           <p className="text-gray-600">{dateLabel} · {totalDays} days</p>
         </div>
 
-        {/* Tabs */}
-        <div className="no-print flex gap-2 border-b border-gray-200 mb-5">
-          {[
-            { id: 'staff', label: 'Staff Attendance', icon: <Briefcase size={15}/> },
-            { id: 'labour', label: 'Labour Attendance', icon: <Users size={15}/> },
-          ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 pb-3 px-3 text-sm font-semibold border-b-2 transition-colors ${
-                activeTab === tab.id ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}>
-              {tab.icon} {tab.label}
-            </button>
-          ))}
+        {/* Tabs and Search */}
+        <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 mb-5 pb-3">
+          <div className="flex gap-2">
+            {[
+              { id: 'staff', label: 'Staff Attendance', icon: <Briefcase size={15}/> },
+              { id: 'labour', label: 'Labour Attendance', icon: <Users size={15}/> },
+            ].map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                  activeTab === tab.id ? 'bg-purple-50 text-purple-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                }`}>
+                {tab.icon} {tab.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-100 transition-all w-full md:w-64">
+             <Search size={16} className="text-gray-400" />
+             <input 
+               type="text"
+               placeholder="Search name or role..."
+               value={searchQuery}
+               onChange={e => setSearchQuery(e.target.value)}
+               className="bg-transparent outline-none text-sm text-gray-800 w-full"
+             />
+          </div>
         </div>
 
         {loading ? (
@@ -273,7 +297,7 @@ const Attendance = () => {
             {/* ── LABOUR TAB ── */}
             {activeTab === 'labour' && (
               <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                {labourAttendance.length === 0 ? (
+                {filteredLabourAttendance.length === 0 ? (
                   <div className="text-center py-16 text-gray-400 flex flex-col items-center">
                     <Users size={40} className="text-gray-200 mb-3" />
                     <p>No labour entries found for this date range.</p>
@@ -293,7 +317,7 @@ const Attendance = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {labourAttendance.map(l => (
+                        {filteredLabourAttendance.map(l => (
                           <tr key={l._id} className="hover:bg-gray-50 transition">
                             <td className="p-3">
                               <div className="font-semibold text-gray-900">{l.name}</div>
@@ -320,7 +344,7 @@ const Attendance = () => {
                         <tr>
                           <td colSpan="6" className="p-3 text-right text-xs font-bold text-gray-500 uppercase">Grand Total Net Production</td>
                           <td className="p-3 text-right font-black text-green-700 text-base">
-                            {labourAttendance.reduce((s, l) => s + (l.netProduction || 0), 0).toLocaleString()}
+                            {filteredLabourAttendance.reduce((s, l) => s + (l.netProduction || 0), 0).toLocaleString()}
                           </td>
                         </tr>
                       </tfoot>

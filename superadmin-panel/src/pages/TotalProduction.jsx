@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Filter, Loader2, Download, CheckCircle, Users, Box, AlertCircle, IndianRupee } from 'lucide-react';
+import { Calendar, Filter, Loader2, Download, CheckCircle, Users, Box, AlertCircle, IndianRupee, Search } from 'lucide-react';
 import { productionService } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -7,6 +7,7 @@ const TotalProduction = () => {
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [shift, setShift] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   
   const [productions, setProductions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -36,17 +37,27 @@ const TotalProduction = () => {
     window.print();
   };
 
+  // Filter productions
+  const filteredProductions = productions.filter(p => 
+    (p.labour?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (p.foreman?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Process active foremen
   const liveForemen = new Set();
-  productions.forEach(p => {
+  filteredProductions.forEach(p => {
     if (p.foreman?.name) {
       liveForemen.add(p.foreman.name);
     }
   });
   const activeForemenList = Array.from(liveForemen).sort();
 
-  // Grand total
-  const totalOverallProduction = productions.reduce((sum, p) => sum + (p.totalProduction || 0), 0);
+  // Grand total and splits
+  const totalOverallProduction = filteredProductions.reduce((sum, p) => sum + (p.totalProduction || 0), 0);
+  const moldingProd = filteredProductions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
+  const fourDieProd = filteredProductions.filter(p => p.labour?.labourType === '4 Die').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
+  const sixDieProd = filteredProductions.filter(p => p.labour?.labourType === '6 Die').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
+  const tyreProd = totalOverallProduction - moldingProd;
 
   return (
     <div className="space-y-6">
@@ -146,31 +157,61 @@ const TotalProduction = () => {
             )}
           </div>
           
-          <div className="bg-teal-50 border border-teal-100 p-4 rounded-xl flex flex-col justify-center items-center text-center print-bg">
-            <h3 className="font-bold text-sm uppercase text-teal-800 mb-1">Grand Total Production</h3>
-            <div className="text-4xl font-black text-teal-600">
-              {totalOverallProduction.toLocaleString()} <span className="text-lg font-medium text-teal-700">pcs</span>
+          <div className="bg-teal-50 border border-teal-100 p-4 rounded-xl flex items-center justify-between print-bg">
+            <div className="flex flex-col justify-center">
+              <h3 className="font-bold text-sm uppercase text-teal-800 mb-1">Grand Total</h3>
+              <div className="text-4xl font-black text-teal-600">
+                {totalOverallProduction.toLocaleString()} <span className="text-lg font-medium text-teal-700">pcs</span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 min-w-[140px]">
+              <div className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100 flex flex-col gap-1">
+                 <div className="flex items-center justify-between gap-3">
+                   <span className="text-[11px] font-bold uppercase">Tyres</span>
+                   <span className="text-sm font-black">{tyreProd.toLocaleString()}</span>
+                 </div>
+                 <div className="flex items-center justify-between gap-2 text-[10px] font-semibold text-blue-600/80 pt-0.5 border-t border-blue-200/50">
+                    <span>4-Die: {fourDieProd.toLocaleString()}</span>
+                    <span>6-Die: {sixDieProd.toLocaleString()}</span>
+                 </div>
+              </div>
+              <div className="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-100 flex items-center justify-between gap-3">
+                 <span className="text-[11px] font-bold uppercase">Molding</span>
+                 <span className="text-sm font-black">{moldingProd.toLocaleString()}</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Production Data Entries (Card UI) */}
         <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 print-bg">
-          <div className="flex items-center gap-2 mb-4">
-            <Box className="text-blue-500" size={20} />
-            <h3 className="text-lg font-bold text-gray-800">
-              Production Entries
-              <span className="text-xs bg-white px-2 py-1 rounded-full font-medium ml-2 border border-gray-200">
-                {productions.length} Entries
-              </span>
-            </h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Box className="text-blue-500" size={20} />
+              <h3 className="text-lg font-bold text-gray-800">
+                Production Entries
+                <span className="text-xs bg-white px-2 py-1 rounded-full font-medium ml-2 border border-gray-200">
+                  {filteredProductions.length} Entries
+                </span>
+              </h3>
+            </div>
+            <div className="no-print flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-100 transition-all w-full md:w-64 shadow-sm">
+              <Search size={16} className="text-gray-400" />
+              <input 
+                type="text"
+                placeholder="Search worker or foreman..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="bg-transparent outline-none text-sm text-gray-800 w-full"
+              />
+            </div>
           </div>
 
           {loading ? (
             <div className="flex justify-center items-center py-20 text-purple-600">
               <Loader2 className="w-8 h-8 animate-spin" />
             </div>
-          ) : productions.length === 0 ? (
+          ) : filteredProductions.length === 0 ? (
             <div className="text-center py-20 text-gray-500 flex flex-col items-center">
               <Calendar className="w-12 h-12 text-gray-300 mb-3" />
               <p>No production entries found for the selected dates and shift.</p>
@@ -194,7 +235,7 @@ const TotalProduction = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
-                  {productions.map((prod) => (
+                  {filteredProductions.map((prod) => (
                     <tr key={prod._id} className="hover:bg-gray-50 transition">
                       <td className="p-3">
                         <div className="font-semibold text-sm text-gray-900">

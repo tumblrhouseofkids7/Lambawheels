@@ -11,8 +11,6 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import useAuthStore from '../store/useAuthStore';
 import Dispatch from '../pages/Dispatch';
 import ContractorSalary from '../pages/ContractorSalary';
-import SalarySheet from '../pages/SalarySheet';
-import AdvanceLedger from '../pages/AdvanceLedger';
 import LabourThakdarReport from '../pages/LabourThakdarReport';
 
 const AppRoutes = () => {
@@ -30,8 +28,6 @@ const AppRoutes = () => {
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/dispatch" element={<Dispatch />} />
           <Route path="/contractor-salary" element={<ContractorSalary />} />
-          <Route path="/salary-sheet" element={<SalarySheet />} />
-          <Route path="/advances" element={<AdvanceLedger />} />
           <Route path="/labour-report" element={<LabourThakdarReport />} />
           <Route path="/reports" element={<Reports />} />
         </Route>
