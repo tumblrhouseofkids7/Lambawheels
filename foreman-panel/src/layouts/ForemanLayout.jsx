@@ -25,7 +25,7 @@ const ForemanLayout = () => {
     <div className="min-h-[100dvh] bg-gray-50 flex flex-col font-sans pb-16 sm:pb-20">
       <Header title={getPageTitle()} />
       <main className="flex-1 p-4 overflow-x-hidden overflow-y-auto">
-        <div className="max-w-md mx-auto h-full">
+        <div className="max-w-md md:max-w-4xl lg:max-w-5xl mx-auto h-full">
           <Outlet />
         </div>
       </main>

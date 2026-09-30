@@ -37,7 +37,7 @@ const IncomingArticlesForm = () => {
     const sgst = parseFloat(billDetails.sgst) || 0;
     const cgst = parseFloat(billDetails.cgst) || 0;
     const igst = parseFloat(billDetails.igst) || 0;
-    
+
     const total = articlesTotal + sgst + cgst + igst;
     setTotalCost(total.toFixed(2));
   }, [articles, billDetails.sgst, billDetails.cgst, billDetails.igst]);
@@ -97,12 +97,12 @@ const IncomingArticlesForm = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
-        
+
         {/* Bill Details Section */}
         <div className="bg-gray-50/50 p-4 md:p-6 rounded-xl border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Bill Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            
+
             {/* Date */}
             <div className="space-y-1.5">
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
@@ -218,7 +218,7 @@ const IncomingArticlesForm = () => {
               <Plus className="w-4 h-4" /> Add Article
             </button>
           </div>
-          
+
           <div className="space-y-3">
             {articles.map((article, index) => {
               const rowTotal = ((parseFloat(article.weight) || 0) * (parseFloat(article.unitCost) || 0)).toFixed(2);
@@ -241,7 +241,7 @@ const IncomingArticlesForm = () => {
                       ))}
                     </datalist>
                   </div>
-                  
+
                   <div className="flex gap-3 w-full md:w-auto">
                     <div className="flex-1 md:w-32">
                       <div className="flex items-center bg-white border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
@@ -258,7 +258,7 @@ const IncomingArticlesForm = () => {
                         />
                       </div>
                     </div>
-                    
+
                     <div className="flex-1 md:w-32">
                       <div className="flex items-center bg-white border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden">
                         <span className="pl-3 text-gray-400"><DollarSign className="w-3.5 h-3.5" /></span>
@@ -274,7 +274,7 @@ const IncomingArticlesForm = () => {
                         />
                       </div>
                     </div>
-                    
+
                     <div className="hidden md:flex flex-col justify-center px-2 w-28 text-right">
                       <span className="text-xs text-gray-500 font-medium">Sum</span>
                       <span className="text-sm font-bold text-gray-800">₹{rowTotal}</span>
