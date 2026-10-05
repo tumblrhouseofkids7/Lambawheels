@@ -12,6 +12,7 @@ import useAuthStore from '../store/useAuthStore';
 import Dispatch from '../pages/Dispatch';
 import ContractorSalary from '../pages/ContractorSalary';
 import LabourThakdarReport from '../pages/LabourThakdarReport';
+import IncomingArticles from '../pages/IncomingArticles';
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuthStore();
@@ -29,6 +30,7 @@ const AppRoutes = () => {
           <Route path="/dispatch" element={<Dispatch />} />
           <Route path="/contractor-salary" element={<ContractorSalary />} />
           <Route path="/labour-report" element={<LabourThakdarReport />} />
+          <Route path="/incoming-articles" element={<IncomingArticles />} />
           <Route path="/reports" element={<Reports />} />
         </Route>
       </Route>
