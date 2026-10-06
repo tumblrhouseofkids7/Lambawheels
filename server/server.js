@@ -76,6 +76,7 @@ app.use('/api/salary', require('./routes/salaryRoutes'));
 app.use('/api/attendance', require('./routes/attendanceRoutes'));
 app.use('/api/advances', require('./routes/advanceRoutes'));
 app.use('/api/incoming-articles', require('./routes/incomingArticleRoutes'));
+app.use('/api/outgoing-articles', require('./routes/outgoingArticleRoutes'));
 
 // Basic route
 app.get('/', (req, res) => {

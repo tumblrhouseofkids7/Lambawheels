@@ -248,6 +248,17 @@ const Dashboard = () => {
           </div>
           <ChevronRight className="w-8 h-8 text-blue-100" />
         </Link>
+
+        <Link to="/outgoing-articles" className="active:scale-95 transition-transform bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-3xl p-6 flex items-center gap-4 shadow-lg shadow-rose-500/30 border border-rose-400/50">
+          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center shrink-0 backdrop-blur-sm">
+             <Package className="w-8 h-8 text-white" />
+          </div>
+          <div className="flex-1 text-left">
+             <h3 className="text-2xl font-black mb-1">Outgoing Articles</h3>
+             <p className="text-rose-100 text-sm font-medium">Generate tax invoices</p>
+          </div>
+          <ChevronRight className="w-8 h-8 text-rose-100" />
+        </Link>
       </div>
     </div>
   );

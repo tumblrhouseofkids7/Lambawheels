@@ -13,6 +13,7 @@ import Profile from '../pages/Profile';
 import Team from '../pages/Team';
 import TotalProduction from '../pages/TotalProduction';
 import IncomingArticles from '../pages/IncomingArticles';
+import OutgoingArticles from '../pages/OutgoingArticles';
 
 const AppRoutes = () => {
   return (
@@ -31,6 +32,7 @@ const AppRoutes = () => {
           <Route path="/total-production" element={<TotalProduction />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/incoming-articles" element={<IncomingArticles />} />
+          <Route path="/outgoing-articles" element={<OutgoingArticles />} />
         </Route>
       </Route>
       

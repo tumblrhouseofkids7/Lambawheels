@@ -17,6 +17,8 @@ const ForemanLayout = () => {
       case '/team': return 'My Team';
       case '/total-production': return 'Total Production';
       case '/profile': return 'Profile';
+      case '/incoming-articles': return 'Incoming Articles';
+      case '/outgoing-articles': return 'Outgoing Articles';
       default: return 'Lamba Wheels';
     }
   };

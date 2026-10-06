@@ -13,6 +13,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMini, setIsMini }) => {
     { name: 'Dispatch Salary', path: '/contractor-salary', icon: FileSpreadsheet },
     { name: 'Labour & Thakdar', path: '/labour-report', icon: HardHat },
     { name: 'Incoming Articles', path: '/incoming-articles', icon: Package },
+    { name: 'Outgoing Articles', path: '/outgoing-articles', icon: Package },
     { name: 'Reports', path: '/reports', icon: FileText },
   ];
 
