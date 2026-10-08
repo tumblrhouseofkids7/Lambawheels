@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Calendar, Filter, Loader2, Download, CheckCircle, Users, Box, AlertCircle, IndianRupee, Search } from 'lucide-react';
 import { productionService } from '../services/api';
 import toast from 'react-hot-toast';
 
 const TotalProduction = () => {
+  const { type } = useParams();
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [shift, setShift] = useState('');
@@ -14,14 +17,21 @@ const TotalProduction = () => {
 
   useEffect(() => {
     fetchData();
-  }, [startDate, endDate, shift]);
+  }, [type, selectedDate, startDate, endDate, shift]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const params = {};
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
+      if (type) {
+        if (selectedDate) {
+          params.startDate = selectedDate;
+          params.endDate = selectedDate;
+        }
+      } else {
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
+      }
       if (shift) params.shift = shift;
       
       const { data } = await productionService.getProductions(params);
@@ -38,10 +48,18 @@ const TotalProduction = () => {
   };
 
   // Filter productions
-  const filteredProductions = productions.filter(p => 
-    (p.labour?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (p.foreman?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProductions = productions.filter(p => {
+    const matchesSearch = (p.labour?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (p.foreman?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (type === 'molding') {
+      return matchesSearch && p.labour?.labourType === 'Molding';
+    } else if (type === 'difference-of-tyre') {
+      return matchesSearch && p.labour?.labourType !== 'Molding';
+    }
+    
+    return matchesSearch;
+  });
 
   // Process active foremen
   const liveForemen = new Set();
@@ -59,6 +77,12 @@ const TotalProduction = () => {
   const sixDieProd = filteredProductions.filter(p => p.labour?.labourType === '6 Die').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
   const tyreProd = totalOverallProduction - moldingProd;
 
+  const pageTitle = type === 'molding' 
+    ? 'Molding Production' 
+    : type === 'difference-of-tyre' 
+      ? 'Tyre Production' 
+      : 'Total Production Report';
+
   return (
     <div className="space-y-6">
       {/* Print Styles */}
@@ -75,7 +99,7 @@ const TotalProduction = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Total Production Report</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
           <p className="text-gray-500">View daily production entries by labour and foreman.</p>
         </div>
         <button 
@@ -88,37 +112,53 @@ const TotalProduction = () => {
 
       <div className="print-section bg-white p-6 rounded-2xl shadow-sm border border-gray-100 min-h-[500px]">
         <div className="hidden print:block mb-6 text-center">
-          <h2 className="text-2xl font-bold uppercase tracking-wider text-gray-900">Total Production Report</h2>
-          <p className="text-gray-600 mt-1">Date: {startDate} to {endDate} {shift ? `| Shift: ${shift}` : ''}</p>
+          <h2 className="text-2xl font-bold uppercase tracking-wider text-gray-900">{pageTitle}</h2>
+          <p className="text-gray-600 mt-1">Date: {type ? selectedDate : `${startDate} to ${endDate}`} {shift ? `| Shift: ${shift}` : ''}</p>
         </div>
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-4 no-print bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase">From Date</label>
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              <input 
-                type="date" 
-                value={startDate} 
-                onChange={e => setStartDate(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm text-gray-700"
-              />
+          {type ? (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-gray-500 uppercase">Date</label>
+              <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <input 
+                  type="date" 
+                  value={selectedDate} 
+                  onChange={e => setSelectedDate(e.target.value)}
+                  className="bg-transparent border-none outline-none text-sm text-gray-700"
+                />
+              </div>
             </div>
-          </div>
-          
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase">To Date</label>
-            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              <input 
-                type="date" 
-                value={endDate} 
-                onChange={e => setEndDate(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm text-gray-700"
-              />
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-gray-500 uppercase">From Date</label>
+                <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={e => setStartDate(e.target.value)}
+                    className="bg-transparent border-none outline-none text-sm text-gray-700"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-gray-500 uppercase">To Date</label>
+                <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <input 
+                    type="date" 
+                    value={endDate} 
+                    onChange={e => setEndDate(e.target.value)}
+                    className="bg-transparent border-none outline-none text-sm text-gray-700"
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-gray-500 uppercase">Shift</label>
@@ -165,20 +205,24 @@ const TotalProduction = () => {
               </div>
             </div>
             <div className="flex flex-col gap-2 min-w-[140px]">
-              <div className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100 flex flex-col gap-1">
-                 <div className="flex items-center justify-between gap-3">
-                   <span className="text-[11px] font-bold uppercase">Tyres</span>
-                   <span className="text-sm font-black">{tyreProd.toLocaleString()}</span>
-                 </div>
-                 <div className="flex items-center justify-between gap-2 text-[10px] font-semibold text-blue-600/80 pt-0.5 border-t border-blue-200/50">
-                    <span>4-Die: {fourDieProd.toLocaleString()}</span>
-                    <span>6-Die: {sixDieProd.toLocaleString()}</span>
-                 </div>
-              </div>
-              <div className="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-100 flex items-center justify-between gap-3">
-                 <span className="text-[11px] font-bold uppercase">Molding</span>
-                 <span className="text-sm font-black">{moldingProd.toLocaleString()}</span>
-              </div>
+              {(!type || type === 'difference-of-tyre') && (
+                <div className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100 flex flex-col gap-1">
+                   <div className="flex items-center justify-between gap-3">
+                     <span className="text-[11px] font-bold uppercase">Tyres</span>
+                     <span className="text-sm font-black">{tyreProd.toLocaleString()}</span>
+                   </div>
+                   <div className="flex items-center justify-between gap-2 text-[10px] font-semibold text-blue-600/80 pt-0.5 border-t border-blue-200/50">
+                      <span>4-Die: {fourDieProd.toLocaleString()}</span>
+                      <span>6-Die: {sixDieProd.toLocaleString()}</span>
+                   </div>
+                </div>
+              )}
+              {(!type || type === 'molding') && (
+                <div className="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-100 flex items-center justify-between gap-3">
+                   <span className="text-[11px] font-bold uppercase">Molding</span>
+                   <span className="text-sm font-black">{moldingProd.toLocaleString()}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
