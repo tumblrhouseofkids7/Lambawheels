@@ -71,10 +71,24 @@ const TotalProduction = () => {
   const activeForemenList = Array.from(liveForemen).sort();
 
   // Grand total and splits
-  const totalOverallProduction = filteredProductions.reduce((sum, p) => sum + (p.totalProduction || 0), 0);
+  const totalOverallProduction = filteredProductions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
+  
   const moldingProd = filteredProductions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
-  const fourDieProd = filteredProductions.filter(p => p.labour?.labourType === '4 Die').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
-  const sixDieProd = filteredProductions.filter(p => p.labour?.labourType === '6 Die').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
+  
+  const fourDieProd = filteredProductions.reduce((sum, p) => {
+    let curr = 0;
+    if (p.labour?.labourType === '4 Die') curr += (p.totalProduction || 0);
+    if (p.secondaryDieType === '4 Die') curr += (p.secondaryTotalProduction || 0);
+    return sum + curr;
+  }, 0);
+
+  const sixDieProd = filteredProductions.reduce((sum, p) => {
+    let curr = 0;
+    if (p.labour?.labourType === '6 Die') curr += (p.totalProduction || 0);
+    if (p.secondaryDieType === '6 Die') curr += (p.secondaryTotalProduction || 0);
+    return sum + curr;
+  }, 0);
+
   const tyreProd = totalOverallProduction - moldingProd;
 
   const pageTitle = type === 'molding' 
