@@ -53,9 +53,9 @@ const TotalProduction = () => {
                           (p.foreman?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     if (type === 'molding') {
-      return matchesSearch && p.labour?.labourType === 'Molding';
+      return matchesSearch && (p.labour?.labourType === 'Molding' || p.secondaryDieType === 'Molding');
     } else if (type === 'difference-of-tyre') {
-      return matchesSearch && p.labour?.labourType !== 'Molding';
+      return matchesSearch && (p.labour?.labourType === '4 Die' || p.labour?.labourType === '6 Die' || p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die' || p.labour?.labourType !== 'Molding');
     }
     
     return matchesSearch;
@@ -72,6 +72,8 @@ const TotalProduction = () => {
 
   // Grand total and splits
   const totalOverallProduction = filteredProductions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
+  const totalOverallReject = filteredProductions.reduce((sum, p) => sum + (p.totalReject || 0) + (p.secondaryTotalReject || 0), 0);
+  const totalOverallNet = filteredProductions.reduce((sum, p) => sum + (p.netProduction || 0) + ((p.secondaryTotalProduction || 0) - (p.secondaryTotalReject || 0)), 0);
   
   const moldingProd = filteredProductions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
   
@@ -89,7 +91,13 @@ const TotalProduction = () => {
     return sum + curr;
   }, 0);
 
-  const tyreProd = totalOverallProduction - moldingProd;
+  const tyreProd = fourDieProd + sixDieProd;
+  const tyreRejects = filteredProductions.reduce((sum, p) => {
+    let curr = 0;
+    if (p.labour?.labourType === '4 Die' || p.labour?.labourType === '6 Die') curr += (p.totalReject || 0);
+    if (p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die') curr += (p.secondaryTotalReject || 0);
+    return sum + curr;
+  }, 0);
 
   const pageTitle = type === 'molding' 
     ? 'Molding Production' 
@@ -217,13 +225,23 @@ const TotalProduction = () => {
               <div className="text-4xl font-black text-teal-600">
                 {totalOverallProduction.toLocaleString()} <span className="text-lg font-medium text-teal-700">pcs</span>
               </div>
+              {totalOverallReject > 0 && (
+                <div className="text-[11px] font-semibold text-gray-500 mt-1">
+                  <span>Net: {totalOverallNet.toLocaleString()}</span> • <span className="text-red-500 font-bold">{totalOverallReject.toLocaleString()} Rejects</span>
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-2 min-w-[140px]">
               {(!type || type === 'difference-of-tyre') && (
                 <div className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100 flex flex-col gap-1">
                    <div className="flex items-center justify-between gap-3">
                      <span className="text-[11px] font-bold uppercase">Tyres</span>
-                     <span className="text-sm font-black">{tyreProd.toLocaleString()}</span>
+                     <div className="text-right">
+                       <span className="text-sm font-black">{tyreProd.toLocaleString()}</span>
+                       {tyreRejects > 0 && (
+                         <span className="text-[10px] text-red-500 font-bold ml-1.5">({tyreRejects} rej)</span>
+                       )}
+                     </div>
                    </div>
                    <div className="flex items-center justify-between gap-2 text-[10px] font-semibold text-blue-600/80 pt-0.5 border-t border-blue-200/50">
                       <span>4-Die: {fourDieProd.toLocaleString()}</span>

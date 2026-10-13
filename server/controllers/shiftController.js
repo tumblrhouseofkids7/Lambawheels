@@ -172,7 +172,7 @@ const getShiftsForDate = async (req, res) => {
           foreman: shift.foreman._id,
           date: { $gte: start, $lte: end },
         });
-        const totalProduction = productions.reduce((sum, p) => sum + (p.netProduction || 0), 0);
+        const totalProduction = productions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
         return {
           _id: shift._id,
           foremanId: shift.foreman._id,

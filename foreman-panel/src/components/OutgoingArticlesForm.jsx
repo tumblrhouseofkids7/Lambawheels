@@ -50,31 +50,26 @@ const OutgoingArticlesForm = () => {
     hsnCode: '',
     qty: '',
     uom: 'PCS',
-    rate: '',
-    cgstRate: '',
-    sgstRate: ''
+    rate: ''
   };
 
   const [goods, setGoods] = useState([{ ...defaultGoods }]);
-  const [grandTotal, setGrandTotal] = useState(0);
+  const [taxes, setTaxes] = useState({
+    cgstRate: '',
+    sgstRate: ''
+  });
 
-  useEffect(() => {
-    let total = 0;
-    goods.forEach(item => {
-      const qty = parseFloat(item.qty) || 0;
-      const rate = parseFloat(item.rate) || 0;
-      const taxableValue = qty * rate;
-      
-      const cgstRate = parseFloat(item.cgstRate) || 0;
-      const cgstAmt = (taxableValue * cgstRate) / 100;
-      
-      const sgstRate = parseFloat(item.sgstRate) || 0;
-      const sgstAmt = (taxableValue * sgstRate) / 100;
+  const totalTaxable = goods.reduce((sum, item) => {
+    const qty = parseFloat(item.qty) || 0;
+    const rate = parseFloat(item.rate) || 0;
+    return sum + (qty * rate);
+  }, 0);
 
-      total += (taxableValue + cgstAmt + sgstAmt);
-    });
-    setGrandTotal(total.toFixed(2));
-  }, [goods]);
+  const cgstRateNum = parseFloat(taxes.cgstRate) || 0;
+  const sgstRateNum = parseFloat(taxes.sgstRate) || 0;
+  const cgstAmt = (totalTaxable * cgstRateNum) / 100;
+  const sgstAmt = (totalTaxable * sgstRateNum) / 100;
+  const grandTotal = totalTaxable + cgstAmt + sgstAmt;
 
   const handleInvoiceChange = (e) => {
     const { name, value } = e.target;
@@ -99,6 +94,18 @@ const OutgoingArticlesForm = () => {
     setGoods(newGoods);
   };
 
+  const handleTaxChange = (e) => {
+    const { name, value } = e.target;
+    setTaxes(prev => {
+      if (name === 'cgstRate') {
+        if (!prev.sgstRate || prev.sgstRate === prev.cgstRate) {
+          return { cgstRate: value, sgstRate: value };
+        }
+      }
+      return { ...prev, [name]: value };
+    });
+  };
+
   const addGoodsRow = () => {
     setGoods([...goods, { ...defaultGoods }]);
   };
@@ -113,26 +120,24 @@ const OutgoingArticlesForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Process goods details to include calculated fields
+    // Process goods details
     const processedGoods = goods.map(item => {
       const qty = parseFloat(item.qty) || 0;
       const rate = parseFloat(item.rate) || 0;
       const taxableValue = qty * rate;
       
-      const cgstRate = parseFloat(item.cgstRate) || 0;
-      const cgstAmt = (taxableValue * cgstRate) / 100;
-      
-      const sgstRate = parseFloat(item.sgstRate) || 0;
-      const sgstAmt = (taxableValue * sgstRate) / 100;
-      
-      const amount = taxableValue + cgstAmt + sgstAmt;
-      
       return {
-        ...item,
+        description: item.description,
+        hsnCode: item.hsnCode,
+        qty,
+        uom: item.uom || 'PCS',
+        rate,
         taxableValue,
-        cgstAmt,
-        sgstAmt,
-        amount
+        cgstRate: 0,
+        cgstAmt: 0,
+        sgstRate: 0,
+        sgstAmt: 0,
+        amount: taxableValue
       };
     });
 
@@ -141,7 +146,12 @@ const OutgoingArticlesForm = () => {
       buyerDetails,
       consigneeDetails,
       goodsDetails: processedGoods,
-      grandTotal: parseFloat(grandTotal)
+      totalTaxableAmount: parseFloat(totalTaxable.toFixed(2)),
+      cgstRate: cgstRateNum,
+      cgstAmount: parseFloat(cgstAmt.toFixed(2)),
+      sgstRate: sgstRateNum,
+      sgstAmount: parseFloat(sgstAmt.toFixed(2)),
+      grandTotal: parseFloat(grandTotal.toFixed(2))
     };
 
     const success = await addArticle(payload);
@@ -161,7 +171,7 @@ const OutgoingArticlesForm = () => {
       });
       setCopyToConsignee(true);
       setGoods([{ ...defaultGoods }]);
-      setGrandTotal(0);
+      setTaxes({ cgstRate: '', sgstRate: '' });
     }
   };
 
@@ -338,117 +348,196 @@ const OutgoingArticlesForm = () => {
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {goods.map((item, index) => {
               const qty = parseFloat(item.qty) || 0;
               const rate = parseFloat(item.rate) || 0;
-              const taxableValue = qty * rate;
-              const cgstRate = parseFloat(item.cgstRate) || 0;
-              const cgstAmt = (taxableValue * cgstRate) / 100;
-              const sgstRate = parseFloat(item.sgstRate) || 0;
-              const sgstAmt = (taxableValue * sgstRate) / 100;
-              const amount = taxableValue + cgstAmt + sgstAmt;
+              const itemTotal = qty * rate;
 
               return (
-                <div key={index} className="flex flex-col gap-3 p-4 bg-gray-50/50 border border-gray-200 rounded-xl relative shadow-sm">
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div key={index} className="p-3.5 bg-gray-50/70 border border-gray-200 rounded-xl relative shadow-2xs hover:border-gray-300 transition-colors">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                     <div className="md:col-span-4">
-                       <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Description of Goods</label>
-                       <input type="text" name="description" value={item.description} onChange={(e) => handleGoodsChange(index, e)} list="goods-list" placeholder="Product Name" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" required />
-                       <datalist id="goods-list">
-                         {suggestions?.goods?.map((g, i) => <option key={i} value={g} />)}
-                       </datalist>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Description of Goods</label>
+                      <input 
+                        type="text" 
+                        name="description" 
+                        value={item.description} 
+                        onChange={(e) => handleGoodsChange(index, e)} 
+                        list="goods-list" 
+                        placeholder="Product Name" 
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" 
+                        required 
+                      />
+                      <datalist id="goods-list">
+                        {suggestions?.goods?.map((g, i) => <option key={i} value={g} />)}
+                      </datalist>
                     </div>
+
                     <div className="md:col-span-2">
-                       <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">HSN Code</label>
-                       <input type="text" name="hsnCode" value={item.hsnCode} onChange={(e) => handleGoodsChange(index, e)} list="hsn-list" placeholder="HSN" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" required />
-                       <datalist id="hsn-list">
-                         {suggestions?.hsn?.map((h, i) => <option key={i} value={h} />)}
-                       </datalist>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">HSN Code</label>
+                      <input 
+                        type="text" 
+                        name="hsnCode" 
+                        value={item.hsnCode} 
+                        onChange={(e) => handleGoodsChange(index, e)} 
+                        list="hsn-list" 
+                        placeholder="HSN" 
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" 
+                        required 
+                      />
+                      <datalist id="hsn-list">
+                        {suggestions?.hsn?.map((h, i) => <option key={i} value={h} />)}
+                      </datalist>
                     </div>
+
                     <div className="md:col-span-2 flex gap-2">
-                       <div className="flex-1">
-                         <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Qty</label>
-                         <input type="number" step="0.01" name="qty" value={item.qty} onChange={(e) => handleGoodsChange(index, e)} placeholder="0" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" required />
-                       </div>
-                       <div className="w-16">
-                         <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">UOM</label>
-                         <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-700 text-center font-semibold cursor-not-allowed">PCS</div>
-                       </div>
+                      <div className="flex-1">
+                        <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Qty</label>
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          name="qty" 
+                          value={item.qty} 
+                          onChange={(e) => handleGoodsChange(index, e)} 
+                          placeholder="0" 
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" 
+                          required 
+                        />
+                      </div>
+                      <div className="w-14">
+                        <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">UOM</label>
+                        <div className="w-full px-2 py-2 border border-gray-200 rounded-lg bg-gray-100 text-xs text-gray-700 text-center font-bold cursor-not-allowed">PCS</div>
+                      </div>
                     </div>
+
                     <div className="md:col-span-2">
-                       <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Rate</label>
-                       <div className="relative">
-                         <span className="absolute left-3 top-2 text-gray-400 text-sm">₹</span>
-                         <input type="number" step="0.01" name="rate" value={item.rate} onChange={(e) => handleGoodsChange(index, e)} placeholder="0.00" className="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" required />
-                       </div>
+                      <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">Rate</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2 text-gray-400 text-sm">₹</span>
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          name="rate" 
+                          value={item.rate} 
+                          onChange={(e) => handleGoodsChange(index, e)} 
+                          placeholder="0.00" 
+                          className="w-full pl-7 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" 
+                          required 
+                        />
+                      </div>
                     </div>
-                    <div className="md:col-span-2 flex flex-col justify-end">
-                       <div className="bg-gray-100 rounded-lg px-3 py-2 border border-gray-200 text-right h-[38px] flex items-center justify-end">
-                          <span className="text-xs text-gray-500 mr-2">Taxable:</span>
-                          <span className="font-bold text-gray-800 text-sm">₹{taxableValue.toFixed(2)}</span>
-                       </div>
+
+                    <div className="md:col-span-2 flex items-center justify-between gap-2">
+                      <div className="flex-1 bg-gray-100 rounded-lg px-3 py-2 border border-gray-200 text-right h-[38px] flex items-center justify-end">
+                        <span className="text-xs text-gray-500 mr-2">Total:</span>
+                        <span className="font-bold text-gray-800 text-sm">₹{itemTotal.toFixed(2)}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeGoodsRow(index)}
+                        disabled={goods.length === 1}
+                        className={`p-2 rounded-lg transition-colors flex-shrink-0 h-[38px] w-[38px] flex items-center justify-center ${goods.length === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:bg-red-50'}`}
+                        title="Remove item"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-12 gap-3 mt-1 pt-3 border-t border-gray-200/50">
-                    <div className="md:col-span-3">
-                       <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">CGST Rate (%)</label>
-                       <input type="number" step="0.01" name="cgstRate" value={item.cgstRate} onChange={(e) => handleGoodsChange(index, e)} placeholder="e.g. 9" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" />
-                    </div>
-                    <div className="md:col-span-2 flex flex-col justify-end">
-                       <span className="text-xs text-gray-500 font-medium mb-1">CGST Amt</span>
-                       <span className="text-sm font-bold text-gray-700 h-[38px] flex items-center">₹{cgstAmt.toFixed(2)}</span>
-                    </div>
-                    <div className="md:col-span-3">
-                       <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase">SGST Rate (%)</label>
-                       <input type="number" step="0.01" name="sgstRate" value={item.sgstRate} onChange={(e) => handleGoodsChange(index, e)} placeholder="e.g. 9" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" />
-                    </div>
-                    <div className="md:col-span-2 flex flex-col justify-end">
-                       <span className="text-xs text-gray-500 font-medium mb-1">SGST Amt</span>
-                       <span className="text-sm font-bold text-gray-700 h-[38px] flex items-center">₹{sgstAmt.toFixed(2)}</span>
-                    </div>
-                    <div className="md:col-span-2 flex items-end justify-between">
-                       <div className="flex flex-col text-right w-full pr-2">
-                         <span className="text-[10px] text-gray-500 font-bold uppercase">Item Total</span>
-                         <span className="text-base font-black text-blue-700">₹{amount.toFixed(2)}</span>
-                       </div>
-                       <button
-                         type="button"
-                         onClick={() => removeGoodsRow(index)}
-                         disabled={goods.length === 1}
-                         className={`p-2 rounded-lg transition-colors flex-shrink-0 h-9 w-9 flex items-center justify-center ${goods.length === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:bg-red-50'}`}
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </button>
-                    </div>
-                  </div>
-
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Total Cost Section */}
-        <div className="mt-6 md:mt-8 bg-blue-50/50 p-4 md:p-6 rounded-2xl border border-blue-100 flex flex-col items-stretch md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 rounded-xl text-blue-600">
-              <Calculator className="w-6 h-6" />
+        {/* Overall Tax & Grand Total Section */}
+        <div className="mt-6 md:mt-8 bg-gradient-to-br from-blue-50/60 to-indigo-50/40 p-5 md:p-6 rounded-2xl border border-blue-100 shadow-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            
+            {/* Left: Overall CGST and SGST Inputs */}
+            <div className="lg:col-span-7 bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-blue-100 shadow-2xs">
+              <div className="flex items-center gap-2 mb-3">
+                <Percent className="w-4 h-4 text-blue-600" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700">GST on Overall Price of Goods</h4>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* CGST */}
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-gray-600 uppercase">CGST Rate (%)</label>
+                    <span className="text-xs font-bold text-blue-600">₹{cgstAmt.toFixed(2)}</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="cgstRate"
+                      value={taxes.cgstRate}
+                      onChange={handleTaxChange}
+                      placeholder="e.g. 9"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-semibold bg-white"
+                    />
+                    <span className="absolute right-3 top-2 text-xs text-gray-400 font-bold">%</span>
+                  </div>
+                </div>
+
+                {/* SGST */}
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-gray-600 uppercase">SGST Rate (%)</label>
+                    <span className="text-xs font-bold text-blue-600">₹{sgstAmt.toFixed(2)}</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      name="sgstRate"
+                      value={taxes.sgstRate}
+                      onChange={handleTaxChange}
+                      placeholder="e.g. 9"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-semibold bg-white"
+                    />
+                    <span className="absolute right-3 top-2 text-xs text-gray-400 font-bold">%</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-900/60 uppercase tracking-wider">Grand Total (inc. GST)</p>
-              <p className="text-3xl font-black text-blue-900">₹ {grandTotal}</p>
+
+            {/* Right: Summary Breakdown & Action */}
+            <div className="lg:col-span-5 flex flex-col justify-between gap-4">
+              <div className="space-y-1.5 text-sm bg-white/80 p-3.5 rounded-xl border border-blue-100">
+                <div className="flex justify-between text-gray-600">
+                  <span className="font-medium text-xs uppercase text-gray-500">Total Goods Price:</span>
+                  <span className="font-bold text-gray-900">₹{totalTaxable.toFixed(2)}</span>
+                </div>
+                {cgstRateNum > 0 && (
+                  <div className="flex justify-between text-gray-600 text-xs">
+                    <span>CGST ({cgstRateNum}%):</span>
+                    <span className="font-semibold text-gray-700">+₹{cgstAmt.toFixed(2)}</span>
+                  </div>
+                )}
+                {sgstRateNum > 0 && (
+                  <div className="flex justify-between text-gray-600 text-xs">
+                    <span>SGST ({sgstRateNum}%):</span>
+                    <span className="font-semibold text-gray-700">+₹{sgstAmt.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-gray-200 flex justify-between items-baseline">
+                  <span className="font-bold text-gray-900 text-sm">Grand Total:</span>
+                  <span className="text-2xl font-black text-blue-700">₹{grandTotal.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
+              >
+                {isLoading ? 'Saving...' : 'Generate Invoice'}
+              </button>
             </div>
+
           </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full md:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-70"
-          >
-            {isLoading ? 'Saving...' : 'Generate Invoice'}
-          </button>
         </div>
       </form>
     </div>

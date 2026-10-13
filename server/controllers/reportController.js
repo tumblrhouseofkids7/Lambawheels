@@ -30,22 +30,35 @@ const getDashboardSummary = async (req, res) => {
       {
         $group: {
           _id: null,
-          totalProduction: { $sum: '$netProduction' },
+          totalProduction: {
+            $sum: {
+              $add: [
+                { $ifNull: ['$totalProduction', 0] },
+                { $ifNull: ['$secondaryTotalProduction', 0] }
+              ]
+            }
+          },
           totalSalary: { $sum: '$finalSalary' },
           count: { $sum: 1 },
           moldingProduction: {
             $sum: {
-              $cond: [ { $eq: ['$labourDetails.labourType', 'Molding'] }, '$netProduction', 0 ]
+              $cond: [ { $eq: ['$labourDetails.labourType', 'Molding'] }, { $ifNull: ['$totalProduction', 0] }, 0 ]
             }
           },
           fourDieProduction: {
             $sum: {
-              $cond: [ { $eq: ['$labourDetails.labourType', '4 Die'] }, '$netProduction', 0 ]
+              $add: [
+                { $cond: [ { $eq: ['$labourDetails.labourType', '4 Die'] }, { $ifNull: ['$totalProduction', 0] }, 0 ] },
+                { $cond: [ { $eq: ['$secondaryDieType', '4 Die'] }, { $ifNull: ['$secondaryTotalProduction', 0] }, 0 ] }
+              ]
             }
           },
           sixDieProduction: {
             $sum: {
-              $cond: [ { $eq: ['$labourDetails.labourType', '6 Die'] }, '$netProduction', 0 ]
+              $add: [
+                { $cond: [ { $eq: ['$labourDetails.labourType', '6 Die'] }, { $ifNull: ['$totalProduction', 0] }, 0 ] },
+                { $cond: [ { $eq: ['$secondaryDieType', '6 Die'] }, { $ifNull: ['$secondaryTotalProduction', 0] }, 0 ] }
+              ]
             }
           }
         }
@@ -59,7 +72,7 @@ const getDashboardSummary = async (req, res) => {
     const moldingProduction = productionStats.length > 0 ? productionStats[0].moldingProduction : 0;
     const fourDieProduction = productionStats.length > 0 ? productionStats[0].fourDieProduction : 0;
     const sixDieProduction = productionStats.length > 0 ? productionStats[0].sixDieProduction : 0;
-    const tyreProduction = totalProduction - moldingProduction;
+    const tyreProduction = fourDieProduction + sixDieProduction;
 
     res.json({
       totalLabours,

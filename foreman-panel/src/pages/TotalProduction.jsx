@@ -75,9 +75,9 @@ const TotalProduction = () => {
   };
 
   // Summaries
-  const totalProduction   = filteredProductions.reduce((s, p) => s + (p.totalProduction || 0), 0);
-  const totalNet          = filteredProductions.reduce((s, p) => s + (p.netProduction || 0), 0);
-  const totalReject       = filteredProductions.reduce((s, p) => s + (p.totalReject || 0), 0);
+  const totalProduction   = filteredProductions.reduce((s, p) => s + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
+  const totalNet          = filteredProductions.reduce((s, p) => s + (p.netProduction || 0) + ((p.secondaryTotalProduction || 0) - (p.secondaryTotalReject || 0)), 0);
+  const totalReject       = filteredProductions.reduce((s, p) => s + (p.totalReject || 0) + (p.secondaryTotalReject || 0), 0);
   const totalOvertime     = filteredProductions.reduce((s, p) => s + (p.overtimeHours || 0), 0);
   const presentCount      = filteredProductions.filter(p => p.attendance === 'Present').length;
   const absentCount       = filteredProductions.filter(p => p.attendance === 'Absent').length;

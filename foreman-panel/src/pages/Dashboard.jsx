@@ -17,25 +17,32 @@ const Dashboard = () => {
     fetchProductions(selectedDate);
   }, [fetchActiveShift, fetchProductions, selectedDate]);
 
-  const totalProd = productions.reduce((sum, p) => sum + (p.netProduction || 0) + ((p.secondaryTotalProduction || 0) - (p.secondaryTotalReject || 0)), 0);
+  const totalProd = productions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
   
-  const moldingProd = productions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.netProduction || 0), 0);
+  const moldingProd = productions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
   
   const fourDieProd = productions.reduce((sum, p) => {
     let curr = 0;
-    if (p.labour?.labourType === '4 Die') curr += (p.netProduction || 0);
-    if (p.secondaryDieType === '4 Die') curr += ((p.secondaryTotalProduction || 0) - (p.secondaryTotalReject || 0));
+    if (p.labour?.labourType === '4 Die') curr += (p.totalProduction || 0);
+    if (p.secondaryDieType === '4 Die') curr += (p.secondaryTotalProduction || 0);
     return sum + curr;
   }, 0);
 
   const sixDieProd = productions.reduce((sum, p) => {
     let curr = 0;
-    if (p.labour?.labourType === '6 Die') curr += (p.netProduction || 0);
-    if (p.secondaryDieType === '6 Die') curr += ((p.secondaryTotalProduction || 0) - (p.secondaryTotalReject || 0));
+    if (p.labour?.labourType === '6 Die') curr += (p.totalProduction || 0);
+    if (p.secondaryDieType === '6 Die') curr += (p.secondaryTotalProduction || 0);
     return sum + curr;
   }, 0);
 
-  const tyreProd = totalProd - moldingProd;
+  const tyreProd = fourDieProd + sixDieProd;
+  const totalRejects = productions.reduce((sum, p) => sum + (p.totalReject || 0) + (p.secondaryTotalReject || 0), 0);
+  const tyreRejects = productions.reduce((sum, p) => {
+    let curr = 0;
+    if (p.labour?.labourType === '4 Die' || p.labour?.labourType === '6 Die') curr += (p.totalReject || 0);
+    if (p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die') curr += (p.secondaryTotalReject || 0);
+    return sum + curr;
+  }, 0);
 
   useEffect(() => {
     if (activeShift && activeShift.status === 'Completed') {
@@ -198,12 +205,22 @@ const Dashboard = () => {
         <div>
           <h3 className="text-gray-500 font-bold text-xs uppercase tracking-wider mb-1.5">Today's Production</h3>
           <div className="text-3xl font-black text-gray-900 leading-none">{totalProd.toLocaleString()}</div>
+          {totalRejects > 0 && (
+            <div className="text-[10px] text-gray-400 font-semibold mt-1">
+              incl. {totalRejects} rejects
+            </div>
+          )}
         </div>
         <div className="flex flex-col gap-2 min-w-[120px]">
           <div className="bg-blue-50 text-blue-700 px-2.5 py-1.5 rounded-lg border border-blue-100 flex flex-col gap-1">
              <div className="flex items-center justify-between gap-3">
                <span className="text-[10px] font-bold uppercase">Tyres</span>
-               <span className="text-sm font-black">{tyreProd.toLocaleString()}</span>
+               <div className="text-right">
+                 <span className="text-sm font-black">{tyreProd.toLocaleString()}</span>
+                 {tyreRejects > 0 && (
+                   <span className="text-[9px] text-red-500 font-bold ml-1">({tyreRejects} rej)</span>
+                 )}
+               </div>
              </div>
              <div className="flex items-center justify-between gap-2 text-[9px] font-semibold text-blue-600/80 pt-0.5 border-t border-blue-200/50">
                 <span>4-Die: {fourDieProd.toLocaleString()}</span>

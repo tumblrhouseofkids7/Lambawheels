@@ -2,13 +2,29 @@ const OutgoingArticle = require('../models/OutgoingArticle');
 
 exports.createArticle = async (req, res) => {
   try {
-    const { invoiceDetails, buyerDetails, consigneeDetails, goodsDetails, grandTotal } = req.body;
+    const { 
+      invoiceDetails, 
+      buyerDetails, 
+      consigneeDetails, 
+      goodsDetails, 
+      totalTaxableAmount,
+      cgstRate,
+      cgstAmount,
+      sgstRate,
+      sgstAmount,
+      grandTotal 
+    } = req.body;
     
     const article = new OutgoingArticle({
       invoiceDetails,
       buyerDetails,
       consigneeDetails,
       goodsDetails,
+      totalTaxableAmount,
+      cgstRate,
+      cgstAmount,
+      sgstRate,
+      sgstAmount,
       grandTotal,
       createdBy: req.user._id
     });

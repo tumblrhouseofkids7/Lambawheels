@@ -38,26 +38,39 @@ const OutgoingArticlesList = () => {
     doc.text(`Date Range: ${dateInfo}`, 14, 30);
     
     // Table data
-    const tableColumn = ["Date", "Invoice No", "Buyer", "Consignee", "Vehicle No", "Grand Total"];
+    const tableColumn = ["Date", "Invoice No", "Buyer", "Consignee", "Taxable", "CGST", "SGST", "Grand Total"];
     const tableRows = [];
 
+    let totalTaxableAll = 0;
+    let totalCgstAll = 0;
+    let totalSgstAll = 0;
     let totalAmount = 0;
 
     articles.forEach(article => {
+      const taxable = article.totalTaxableAmount || (article.goodsDetails?.reduce((s, g) => s + (g.taxableValue || g.amount || 0), 0)) || 0;
+      const cgst = article.cgstAmount || 0;
+      const sgst = article.sgstAmount || 0;
+      const grand = article.grandTotal || 0;
+
       const rowData = [
         article.invoiceDetails?.invoiceDate ? new Date(article.invoiceDetails.invoiceDate).toLocaleDateString() : 'N/A',
         article.invoiceDetails?.invoiceNo || 'N/A',
         article.buyerDetails?.name || 'N/A',
         article.consigneeDetails?.name || 'N/A',
-        article.invoiceDetails?.vehicleNumber || 'N/A',
-        article.grandTotal?.toFixed(2) || '0.00'
+        taxable.toFixed(2),
+        cgst.toFixed(2),
+        sgst.toFixed(2),
+        grand.toFixed(2)
       ];
       tableRows.push(rowData);
-      totalAmount += article.grandTotal || 0;
+      totalTaxableAll += taxable;
+      totalCgstAll += cgst;
+      totalSgstAll += sgst;
+      totalAmount += grand;
     });
 
     // Add totals row
-    tableRows.push(["", "", "", "", "Total", totalAmount.toFixed(2)]);
+    tableRows.push(["", "", "", "Total", totalTaxableAll.toFixed(2), totalCgstAll.toFixed(2), totalSgstAll.toFixed(2), totalAmount.toFixed(2)]);
 
     autoTable(doc, {
       head: [tableColumn],
@@ -140,7 +153,15 @@ const OutgoingArticlesList = () => {
                   <td className="p-3 text-sm text-gray-700">{article.invoiceDetails?.invoiceDate ? new Date(article.invoiceDetails.invoiceDate).toLocaleDateString() : 'N/A'}</td>
                   <td className="p-3 text-sm text-gray-700">{article.invoiceDetails?.invoiceNo}</td>
                   <td className="p-3 text-sm text-gray-700 font-medium">{article.buyerDetails?.name}</td>
-                  <td className="p-3 text-sm text-gray-700 font-bold text-right">{article.grandTotal?.toFixed(2)}</td>
+                  <td className="p-3 text-sm text-gray-700 font-bold text-right">
+                    <div>₹{article.grandTotal?.toFixed(2)}</div>
+                    {article.totalTaxableAmount > 0 && (
+                      <div className="text-[10px] text-gray-400 font-normal">
+                        Goods: ₹{article.totalTaxableAmount.toFixed(2)}
+                        {article.cgstAmount > 0 ? ` | GST: ₹${((article.cgstAmount || 0) + (article.sgstAmount || 0)).toFixed(2)}` : ''}
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

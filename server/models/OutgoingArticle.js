@@ -6,12 +6,12 @@ const goodsDetailSchema = new mongoose.Schema({
   qty: { type: Number, required: true },
   uom: { type: String, default: 'PCS' },
   rate: { type: Number, required: true },
-  taxableValue: { type: Number, required: true },
+  taxableValue: { type: Number, default: 0 },
   cgstRate: { type: Number, default: 0 },
   cgstAmt: { type: Number, default: 0 },
   sgstRate: { type: Number, default: 0 },
   sgstAmt: { type: Number, default: 0 },
-  amount: { type: Number, required: true }
+  amount: { type: Number, default: 0 }
 });
 
 const outgoingArticleSchema = new mongoose.Schema({
@@ -41,6 +41,11 @@ const outgoingArticleSchema = new mongoose.Schema({
     email: { type: String }
   },
   goodsDetails: [goodsDetailSchema],
+  totalTaxableAmount: { type: Number, default: 0 },
+  cgstRate: { type: Number, default: 0 },
+  cgstAmount: { type: Number, default: 0 },
+  sgstRate: { type: Number, default: 0 },
+  sgstAmount: { type: Number, default: 0 },
   grandTotal: { type: Number, required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
