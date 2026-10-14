@@ -81,6 +81,7 @@ const WorkerEntry = () => {
         secondaryReject2: existing.secondaryReject2 || '',
         secondaryReject3: existing.secondaryReject3 || '',
         lowProductionReason: existing.lowProductionReason || '',
+        jobType: existing.jobType || ((labour.labourType === 'Simple' || !labour.labourType) ? (labour.name?.includes('(M)') ? 'Molding' : 'Tyre') : null)
       });
 
       const activeRejects = [];
@@ -106,6 +107,7 @@ const WorkerEntry = () => {
         reject3: '',
         bonusRate: 0.05,
         overtimeHours: '',
+        jobType: (labour.labourType === 'Simple' || !labour.labourType) ? (labour.name?.includes('(M)') ? 'Molding' : 'Tyre') : null,
         secondaryDieType: '',
         secondaryTargetProduction: '',
         secondaryTotalProduction: '',
@@ -358,7 +360,69 @@ const WorkerEntry = () => {
                 <div className="border-t border-gray-100 pt-5">
                   <h4 className="text-base font-bold text-gray-800 mb-4">Production Details</h4>
 
-                  <div className={`grid grid-cols-1 ${(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-4`}>
+                  {/* Simple Labour Job Selection */}
+                  {(!labour?.labourType || labour.labourType === 'Simple') && (
+                    <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 p-4 rounded-2xl border border-blue-200/80 mb-5 shadow-2xs">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-bold text-blue-900 uppercase tracking-wider">
+                          Job Done Today
+                        </label>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                          Simple Labour
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, jobType: prev.jobType === '6 Die' ? '6 Die' : '4 Die' }))}
+                          className={`py-3 px-4 rounded-xl font-bold text-sm border flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                            formData.jobType === 'Tyre' || formData.jobType === '4 Die' || formData.jobType === '6 Die'
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span>🚗 Tyre Production</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, jobType: 'Molding' }))}
+                          className={`py-3 px-4 rounded-xl font-bold text-sm border flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                            formData.jobType === 'Molding'
+                              ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/25'
+                              : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span>⚙️ Molding Production</span>
+                        </button>
+                      </div>
+
+                      {(formData.jobType === 'Tyre' || formData.jobType === '4 Die' || formData.jobType === '6 Die') && (
+                        <div className="flex items-center gap-2 pt-2 border-t border-blue-200/60 mt-2">
+                          <span className="text-xs font-bold text-blue-800">Die Press:</span>
+                          {[
+                            { label: '4 Die', val: '4 Die' },
+                            { label: '6 Die', val: '6 Die' },
+                            { label: 'General Tyre', val: 'Tyre' }
+                          ].map(opt => (
+                            <button
+                              key={opt.val}
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, jobType: opt.val }))}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                                formData.jobType === opt.val
+                                  ? 'bg-blue-700 text-white shadow-xs'
+                                  : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className={`grid grid-cols-1 ${((!labour?.labourType || labour.labourType === 'Simple') ? formData.jobType === 'Molding' : labour.labourType === 'Molding') ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-4`}>
                     <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Target</label>
                       <input type="number" name="targetProduction" value={formData.targetProduction} readOnly className="w-full px-4 py-3.5 bg-gray-200 border border-gray-300 rounded-xl focus:outline-none font-black text-xl text-gray-600 transition-all cursor-not-allowed" />
@@ -367,7 +431,7 @@ const WorkerEntry = () => {
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Total Prod</label>
                       <input type="number" name="totalProduction" value={formData.totalProduction} onChange={handleInputChange} min="0" className="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-black text-xl transition-all" required />
                     </div>
-                    {(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') ? null : (
+                    {((!labour?.labourType || labour.labourType === 'Simple') ? formData.jobType === 'Molding' : labour.labourType === 'Molding') ? null : (
                       <div>
                         <label className="block text-xs font-bold text-red-500 uppercase tracking-wider mb-2">Total Reject</label>
                         <input type="number" name="totalReject" value={formData.totalReject} onChange={handleInputChange} min="0" className="w-full px-4 py-3.5 bg-red-50 border border-red-200 rounded-xl focus:ring-2 focus:ring-red-400 outline-none font-black text-xl text-red-600 transition-all" />
@@ -375,7 +439,7 @@ const WorkerEntry = () => {
                     )}
                   </div>
 
-                  {(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') ? null : (
+                  {((!labour?.labourType || labour.labourType === 'Simple') ? formData.jobType === 'Molding' : labour.labourType === 'Molding') ? null : (
                     <div className="mb-4">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Reject Categories</label>
                       <div className="flex flex-wrap gap-3 mb-3">
@@ -410,6 +474,21 @@ const WorkerEntry = () => {
                       )}
                     </div>
                   )}
+
+                  {/* Net Production & Extra Summary Card (Belongs to Primary Production) */}
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 mb-5">
+                    <div className="flex gap-6 items-center">
+                      <div className="flex flex-col flex-1">
+                        <span className="font-bold text-gray-500 text-xs uppercase tracking-wider mb-1">Net Prod</span>
+                        <span className="text-2xl font-black text-gray-800">{calculateNetProduction()}</span>
+                      </div>
+                      <div className="w-px h-10 bg-gray-200"></div>
+                      <div className="flex flex-col flex-1">
+                        <span className="font-bold text-green-600 text-xs uppercase tracking-wider mb-1">Extra</span>
+                        <span className="text-2xl font-black text-green-600">+{calculateExtraProduction()}</span>
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Secondary Die Section */}
                   {labour?.labourType && (labour.labourType === '4 Die' || labour.labourType === '6 Die') && (
@@ -491,21 +570,6 @@ const WorkerEntry = () => {
                       )}
                     </div>
                   )}
-
-                  {/* Net Production Card */}
-                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200 mb-5">
-                    <div className="flex gap-6 items-center">
-                      <div className="flex flex-col flex-1">
-                        <span className="font-bold text-gray-500 text-xs uppercase tracking-wider mb-1">Net Prod</span>
-                        <span className="text-2xl font-black text-gray-800">{calculateNetProduction()}</span>
-                      </div>
-                      <div className="w-px h-10 bg-gray-200"></div>
-                      <div className="flex flex-col flex-1">
-                        <span className="font-bold text-green-600 text-xs uppercase tracking-wider mb-1">Extra</span>
-                        <span className="text-2xl font-black text-green-600">+{calculateExtraProduction()}</span>
-                      </div>
-                    </div>
-                  </div>
 
                   <div className={`grid grid-cols-1 ${(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') ? 'grid-cols-2' : ''} gap-4`}>
                     {(!labour?.labourType || labour.labourType === 'Simple' || labour.labourType === 'Molding') && (

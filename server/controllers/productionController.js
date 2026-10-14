@@ -74,7 +74,8 @@ const addProduction = async (req, res) => {
       secondaryTotalReject,
       secondaryReject2,
       secondaryReject3,
-      lowProductionReason
+      lowProductionReason,
+      jobType
     } = req.body;
 
     const production = new Production({
@@ -95,6 +96,7 @@ const addProduction = async (req, res) => {
       overtimeHours: overtimeHours || 0,
       advances: advances || 0,
       deductions: deductions || 0,
+      jobType: jobType || null,
       secondaryDieType: secondaryDieType === '' ? null : secondaryDieType,
       secondaryTargetProduction: secondaryTargetProduction || 0,
       secondaryTotalProduction: secondaryTotalProduction || 0,
@@ -142,7 +144,8 @@ const updateProduction = async (req, res) => {
       secondaryTotalReject,
       secondaryReject2,
       secondaryReject3,
-      lowProductionReason
+      lowProductionReason,
+      jobType
     } = req.body;
 
     const production = await Production.findById(req.params.id);
@@ -165,6 +168,7 @@ const updateProduction = async (req, res) => {
     if (overtimeHours !== undefined) production.overtimeHours = overtimeHours === '' ? 0 : overtimeHours;
     if (advances !== undefined) production.advances = advances === '' ? 0 : advances;
     if (deductions !== undefined) production.deductions = deductions === '' ? 0 : deductions;
+    if (jobType !== undefined) production.jobType = jobType === '' ? null : jobType;
     if (secondaryDieType !== undefined) production.secondaryDieType = secondaryDieType === '' ? null : secondaryDieType;
     if (secondaryTargetProduction !== undefined) production.secondaryTargetProduction = secondaryTargetProduction === '' ? 0 : secondaryTargetProduction;
     if (secondaryTotalProduction !== undefined) production.secondaryTotalProduction = secondaryTotalProduction === '' ? 0 : secondaryTotalProduction;

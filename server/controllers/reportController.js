@@ -42,13 +42,43 @@ const getDashboardSummary = async (req, res) => {
           count: { $sum: 1 },
           moldingProduction: {
             $sum: {
-              $cond: [ { $eq: ['$labourDetails.labourType', 'Molding'] }, '$netProduction', 0 ]
+              $cond: [
+                {
+                  $or: [
+                    { $eq: ['$jobType', 'Molding'] },
+                    {
+                      $and: [
+                        { $or: [ { $eq: ['$jobType', null] }, { $eq: [{ $type: '$jobType' }, 'missing'] } ] },
+                        { $eq: ['$labourDetails.labourType', 'Molding'] }
+                      ]
+                    }
+                  ]
+                },
+                '$netProduction',
+                0
+              ]
             }
           },
           fourDieProduction: {
             $sum: {
               $add: [
-                { $cond: [ { $eq: ['$labourDetails.labourType', '4 Die'] }, { $ifNull: ['$totalProduction', 0] }, 0 ] },
+                {
+                  $cond: [
+                    {
+                      $or: [
+                        { $eq: ['$jobType', '4 Die'] },
+                        {
+                          $and: [
+                            { $or: [ { $eq: ['$jobType', null] }, { $eq: [{ $type: '$jobType' }, 'missing'] } ] },
+                            { $eq: ['$labourDetails.labourType', '4 Die'] }
+                          ]
+                        }
+                      ]
+                    },
+                    { $ifNull: ['$totalProduction', 0] },
+                    0
+                  ]
+                },
                 { $cond: [ { $eq: ['$secondaryDieType', '4 Die'] }, { $ifNull: ['$secondaryTotalProduction', 0] }, 0 ] }
               ]
             }
@@ -56,7 +86,23 @@ const getDashboardSummary = async (req, res) => {
           sixDieProduction: {
             $sum: {
               $add: [
-                { $cond: [ { $eq: ['$labourDetails.labourType', '6 Die'] }, { $ifNull: ['$totalProduction', 0] }, 0 ] },
+                {
+                  $cond: [
+                    {
+                      $or: [
+                        { $eq: ['$jobType', '6 Die'] },
+                        {
+                          $and: [
+                            { $or: [ { $eq: ['$jobType', null] }, { $eq: [{ $type: '$jobType' }, 'missing'] } ] },
+                            { $eq: ['$labourDetails.labourType', '6 Die'] }
+                          ]
+                        }
+                      ]
+                    },
+                    { $ifNull: ['$totalProduction', 0] },
+                    0
+                  ]
+                },
                 { $cond: [ { $eq: ['$secondaryDieType', '6 Die'] }, { $ifNull: ['$secondaryTotalProduction', 0] }, 0 ] }
               ]
             }

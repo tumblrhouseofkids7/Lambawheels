@@ -17,20 +17,26 @@ const Dashboard = () => {
     fetchProductions(selectedDate);
   }, [fetchActiveShift, fetchProductions, selectedDate]);
 
+  const isMolding = (p) => {
+    if (p.jobType === 'Molding') return true;
+    if (p.jobType && p.jobType !== 'Molding') return false;
+    return p.labour?.labourType === 'Molding';
+  };
+
   const totalProd = productions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
   
-  const moldingProd = productions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.netProduction || 0), 0);
+  const moldingProd = productions.filter(isMolding).reduce((sum, p) => sum + (p.netProduction || 0), 0);
   
   const fourDieProd = productions.reduce((sum, p) => {
     let curr = 0;
-    if (p.labour?.labourType === '4 Die') curr += (p.totalProduction || 0);
+    if (p.jobType === '4 Die' || (!p.jobType && p.labour?.labourType === '4 Die')) curr += (p.totalProduction || 0);
     if (p.secondaryDieType === '4 Die') curr += (p.secondaryTotalProduction || 0);
     return sum + curr;
   }, 0);
 
   const sixDieProd = productions.reduce((sum, p) => {
     let curr = 0;
-    if (p.labour?.labourType === '6 Die') curr += (p.totalProduction || 0);
+    if (p.jobType === '6 Die' || (!p.jobType && p.labour?.labourType === '6 Die')) curr += (p.totalProduction || 0);
     if (p.secondaryDieType === '6 Die') curr += (p.secondaryTotalProduction || 0);
     return sum + curr;
   }, 0);
@@ -39,7 +45,7 @@ const Dashboard = () => {
   const totalRejects = productions.reduce((sum, p) => sum + (p.totalReject || 0) + (p.secondaryTotalReject || 0), 0);
   const tyreRejects = productions.reduce((sum, p) => {
     let curr = 0;
-    if (p.labour?.labourType === '4 Die' || p.labour?.labourType === '6 Die') curr += (p.totalReject || 0);
+    if (!isMolding(p)) curr += (p.totalReject || 0);
     if (p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die') curr += (p.secondaryTotalReject || 0);
     return sum + curr;
   }, 0);

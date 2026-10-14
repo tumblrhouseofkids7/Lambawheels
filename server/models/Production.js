@@ -65,6 +65,11 @@ const productionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  jobType: {
+    type: String,
+    enum: ['Tyre', 'Molding', '4 Die', '6 Die', 'Simple', null],
+    default: null
+  },
   secondaryDieType: {
     type: String,
     enum: ['4 Die', '6 Die', 'Molding', null]
@@ -143,6 +148,10 @@ productionSchema.pre('validate', async function () {
 
   // Ensure lType is always a valid string
   if (!lType) lType = 'Simple';
+
+  if (this.jobType && (this.jobType === '4 Die' || this.jobType === '6 Die')) {
+    lType = this.jobType;
+  }
 
   let primaryBonus = 0;
   if (lType === '4 Die') {

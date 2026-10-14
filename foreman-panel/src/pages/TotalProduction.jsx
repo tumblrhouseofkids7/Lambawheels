@@ -35,8 +35,11 @@ const TotalProduction = () => {
 
   const filteredProductions = productions.filter(p => {
     if (filterType === 'All') return true;
-    const lType = p.labour?.labourType;
-    if (filterType === 'Simple') return !lType || lType === 'Simple';
+    const lType = p.jobType || p.labour?.labourType;
+    if (filterType === 'Simple') return !p.jobType && (!p.labour?.labourType || p.labour?.labourType === 'Simple');
+    if (filterType === 'Molding') return p.jobType === 'Molding' || (!p.jobType && p.labour?.labourType === 'Molding');
+    if (filterType === '4 Die') return p.jobType === '4 Die' || (!p.jobType && p.labour?.labourType === '4 Die');
+    if (filterType === '6 Die') return p.jobType === '6 Die' || (!p.jobType && p.labour?.labourType === '6 Die');
     return lType === filterType;
   });
 
@@ -47,10 +50,13 @@ const TotalProduction = () => {
     const tableColumn = ["Date", "Worker", "Type", "Foreman", "Shift", "Att.", "Time", "Target", "Total", "Net", "Extra", "T.Reject", "R2", "R3", "S.Type", "S.Total", "S.Rej", "Reason", "Bonus", "Overtime"];
     const tableRows = filteredProductions.map(p => {
         const isPresent = p.attendance === 'Present';
+        const displayType = p.jobType 
+          ? `${p.jobType}${p.labour?.labourType === 'Simple' ? ' (Simple)' : ''}` 
+          : (p.labour?.labourType && p.labour.labourType !== 'Simple' ? p.labour.labourType : 'Simple');
         return [
         new Date(p.date).toLocaleDateString('en-GB'),
         p.labour?.name || 'Unknown',
-        p.labour?.labourType && p.labour.labourType !== 'Simple' ? p.labour.labourType : '-',
+        displayType,
         p.foreman?.name || '-',
         p.shiftType || '-',
         p.attendance,
@@ -206,7 +212,9 @@ const TotalProduction = () => {
                  <tbody>
                    {filteredProductions.map((prod, index) => {
                      const isPresent = prod.attendance === 'Present';
-                     const lType = prod.labour?.labourType && prod.labour.labourType !== 'Simple' ? prod.labour.labourType : '-';
+                     const lType = prod.jobType 
+                       ? `${prod.jobType}${prod.labour?.labourType === 'Simple' ? ' (Simple)' : ''}` 
+                       : (prod.labour?.labourType && prod.labour.labourType !== 'Simple' ? prod.labour.labourType : 'Simple');
                      return (
                        <tr key={prod._id} className={`border-b border-gray-200 hover:bg-gray-100 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{new Date(prod.date).toLocaleDateString('en-GB')}</td>

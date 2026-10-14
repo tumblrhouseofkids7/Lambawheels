@@ -47,15 +47,21 @@ const TotalProduction = () => {
     window.print();
   };
 
+  const isMolding = (p) => {
+    if (p.jobType === 'Molding') return true;
+    if (p.jobType && p.jobType !== 'Molding') return false;
+    return p.labour?.labourType === 'Molding';
+  };
+
   // Filter productions
   const filteredProductions = productions.filter(p => {
     const matchesSearch = (p.labour?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (p.foreman?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     if (type === 'molding') {
-      return matchesSearch && p.labour?.labourType === 'Molding';
+      return matchesSearch && isMolding(p);
     } else if (type === 'difference-of-tyre') {
-      return matchesSearch && p.labour?.labourType !== 'Molding';
+      return matchesSearch && !isMolding(p);
     }
     
     return matchesSearch;
@@ -75,18 +81,18 @@ const TotalProduction = () => {
   const totalOverallReject = filteredProductions.reduce((sum, p) => sum + (p.totalReject || 0) + (p.secondaryTotalReject || 0), 0);
   const totalOverallNet = filteredProductions.reduce((sum, p) => sum + (p.netProduction || 0) + ((p.secondaryTotalProduction || 0) - (p.secondaryTotalReject || 0)), 0);
   
-  const moldingProd = filteredProductions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
+  const moldingProd = filteredProductions.filter(isMolding).reduce((sum, p) => sum + (p.totalProduction || 0), 0);
   
   const fourDieProd = filteredProductions.reduce((sum, p) => {
     let curr = 0;
-    if (p.labour?.labourType === '4 Die') curr += (p.totalProduction || 0);
+    if (p.jobType === '4 Die' || (!p.jobType && p.labour?.labourType === '4 Die')) curr += (p.totalProduction || 0);
     if (p.secondaryDieType === '4 Die') curr += (p.secondaryTotalProduction || 0);
     return sum + curr;
   }, 0);
 
   const sixDieProd = filteredProductions.reduce((sum, p) => {
     let curr = 0;
-    if (p.labour?.labourType === '6 Die') curr += (p.totalProduction || 0);
+    if (p.jobType === '6 Die' || (!p.jobType && p.labour?.labourType === '6 Die')) curr += (p.totalProduction || 0);
     if (p.secondaryDieType === '6 Die') curr += (p.secondaryTotalProduction || 0);
     return sum + curr;
   }, 0);
@@ -94,7 +100,7 @@ const TotalProduction = () => {
   const tyreProd = totalOverallProduction - moldingProd;
   const tyreRejects = filteredProductions.reduce((sum, p) => {
     let curr = 0;
-    if (p.labour?.labourType === '4 Die' || p.labour?.labourType === '6 Die') curr += (p.totalReject || 0);
+    if (!isMolding(p)) curr += (p.totalReject || 0);
     if (p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die') curr += (p.secondaryTotalReject || 0);
     return sum + curr;
   }, 0);
@@ -330,7 +336,18 @@ const TotalProduction = () => {
                               {prod.labour?.name?.charAt(0) || 'U'}
                             </div>
                           )}
-                          {prod.labour?.name || 'Unknown Worker'}
+                          <div className="flex flex-col">
+                            <span>{prod.labour?.name || 'Unknown Worker'}</span>
+                            {prod.jobType ? (
+                              <span className={`text-[10px] w-fit px-1.5 py-0.2 rounded font-bold ${prod.jobType === 'Molding' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                                {prod.jobType}
+                              </span>
+                            ) : prod.labour?.labourType ? (
+                              <span className="text-[10px] text-gray-400 font-medium">
+                                {prod.labour.labourType}
+                              </span>
+                            ) : null}
+                          </div>
                         </div>
                       </td>
                       <td className="p-3">
