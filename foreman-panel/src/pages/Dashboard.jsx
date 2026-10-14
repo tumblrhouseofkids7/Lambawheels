@@ -19,7 +19,7 @@ const Dashboard = () => {
 
   const totalProd = productions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
   
-  const moldingProd = productions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.totalProduction || 0), 0);
+  const moldingProd = productions.filter(p => p.labour?.labourType === 'Molding').reduce((sum, p) => sum + (p.netProduction || 0), 0);
   
   const fourDieProd = productions.reduce((sum, p) => {
     let curr = 0;
@@ -35,7 +35,7 @@ const Dashboard = () => {
     return sum + curr;
   }, 0);
 
-  const tyreProd = fourDieProd + sixDieProd;
+  const tyreProd = totalProd - moldingProd;
   const totalRejects = productions.reduce((sum, p) => sum + (p.totalReject || 0) + (p.secondaryTotalReject || 0), 0);
   const tyreRejects = productions.reduce((sum, p) => {
     let curr = 0;

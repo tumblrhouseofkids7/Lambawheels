@@ -42,7 +42,7 @@ const getDashboardSummary = async (req, res) => {
           count: { $sum: 1 },
           moldingProduction: {
             $sum: {
-              $cond: [ { $eq: ['$labourDetails.labourType', 'Molding'] }, { $ifNull: ['$totalProduction', 0] }, 0 ]
+              $cond: [ { $eq: ['$labourDetails.labourType', 'Molding'] }, '$netProduction', 0 ]
             }
           },
           fourDieProduction: {
@@ -72,7 +72,7 @@ const getDashboardSummary = async (req, res) => {
     const moldingProduction = productionStats.length > 0 ? productionStats[0].moldingProduction : 0;
     const fourDieProduction = productionStats.length > 0 ? productionStats[0].fourDieProduction : 0;
     const sixDieProduction = productionStats.length > 0 ? productionStats[0].sixDieProduction : 0;
-    const tyreProduction = fourDieProduction + sixDieProduction;
+    const tyreProduction = totalProduction - moldingProduction;
 
     res.json({
       totalLabours,

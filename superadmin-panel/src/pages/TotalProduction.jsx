@@ -53,9 +53,9 @@ const TotalProduction = () => {
                           (p.foreman?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     if (type === 'molding') {
-      return matchesSearch && (p.labour?.labourType === 'Molding' || p.secondaryDieType === 'Molding');
+      return matchesSearch && p.labour?.labourType === 'Molding';
     } else if (type === 'difference-of-tyre') {
-      return matchesSearch && (p.labour?.labourType === '4 Die' || p.labour?.labourType === '6 Die' || p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die' || p.labour?.labourType !== 'Molding');
+      return matchesSearch && p.labour?.labourType !== 'Molding';
     }
     
     return matchesSearch;
@@ -91,7 +91,7 @@ const TotalProduction = () => {
     return sum + curr;
   }, 0);
 
-  const tyreProd = fourDieProd + sixDieProd;
+  const tyreProd = totalOverallProduction - moldingProd;
   const tyreRejects = filteredProductions.reduce((sum, p) => {
     let curr = 0;
     if (p.labour?.labourType === '4 Die' || p.labour?.labourType === '6 Die') curr += (p.totalReject || 0);
