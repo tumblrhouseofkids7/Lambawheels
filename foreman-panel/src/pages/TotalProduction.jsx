@@ -53,6 +53,8 @@ const TotalProduction = () => {
         const displayType = p.jobType 
           ? `${p.jobType}${p.labour?.labourType === 'Simple' ? ' (Simple)' : ''}` 
           : (p.labour?.labourType && p.labour.labourType !== 'Simple' ? p.labour.labourType : 'Simple');
+        const rowTotal = isPresent ? (isMolding(p) ? (p.totalProduction ?? 0) : ((p.totalProduction ?? 0) + (p.totalReject ?? 0))) : '-';
+        const rowSecTotal = (p.secondaryTotalProduction ?? 0) + ((p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die') ? (p.secondaryTotalReject ?? 0) : 0);
         return [
         new Date(p.date).toLocaleDateString('en-GB'),
         p.labour?.name || 'Unknown',
@@ -62,31 +64,49 @@ const TotalProduction = () => {
         p.attendance,
         isPresent ? `${p.inTime || '-'} to ${p.outTime || '-'}` : '-',
         isPresent ? (p.targetProduction ?? 0) : '-',
-        isPresent ? (p.totalProduction ?? 0) : '-',
+        rowTotal,
         isPresent ? (p.netProduction ?? 0) : '-',
         isPresent ? (p.extraProduction ?? 0) : '-',
         isPresent ? (p.totalReject ?? 0) : '-',
         isPresent ? (p.reject2 ?? 0) : '-',
         isPresent ? (p.reject3 ?? 0) : '-',
         p.secondaryDieType || '-',
-        p.secondaryTotalProduction ?? 0,
+        rowSecTotal,
         p.secondaryTotalReject ?? 0,
         p.lowProductionReason || '-',
         isPresent ? (p.bonusAmount?.toFixed(2) ?? '0.00') : '-',
         isPresent ? (p.overtimeHours ?? 0) : '-'
         ]
     });
+    tableRows.push([
+      "Total", "", "", "", "", `${presentCount}P / ${absentCount}A`, "", "",
+      totalProduction, totalNet, "", totalReject, "", "", "", "", "", "", "", totalOvertime
+    ]);
     autoTable(doc, { head: [tableColumn], body: tableRows, startY: 20, styles: { fontSize: 7, textColor: [0, 0, 0] } });
     doc.save(`Total_Production_Report.pdf`);
   };
 
-  // Summaries
-  const totalProduction   = filteredProductions.reduce((s, p) => s + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
-  const totalNet          = filteredProductions.reduce((s, p) => s + (p.netProduction || 0) + ((p.secondaryTotalProduction || 0) - (p.secondaryTotalReject || 0)), 0);
-  const totalReject       = filteredProductions.reduce((s, p) => s + (p.totalReject || 0) + (p.secondaryTotalReject || 0), 0);
-  const totalOvertime     = filteredProductions.reduce((s, p) => s + (p.overtimeHours || 0), 0);
-  const presentCount      = filteredProductions.filter(p => p.attendance === 'Present').length;
-  const absentCount       = filteredProductions.filter(p => p.attendance === 'Absent').length;
+  const isMolding = (p) => {
+    if (p.jobType === 'Molding') return true;
+    if (p.jobType && p.jobType !== 'Molding') return false;
+    return p.labour?.labourType === 'Molding';
+  };
+
+  const tyreRejects = filteredProductions.reduce((sum, p) => {
+    let curr = 0;
+    if (!isMolding(p)) curr += (p.totalReject || 0);
+    if (p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die') curr += (p.secondaryTotalReject || 0);
+    return sum + curr;
+  }, 0);
+
+  // Summaries (Includes tyre rejects in Total Production sum)
+  const baseTotalProduction = filteredProductions.reduce((s, p) => s + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
+  const totalProduction     = baseTotalProduction + tyreRejects;
+  const totalNet            = filteredProductions.reduce((s, p) => s + (p.netProduction || 0) + ((p.secondaryTotalProduction || 0) - (p.secondaryTotalReject || 0)), 0);
+  const totalReject         = filteredProductions.reduce((s, p) => s + (p.totalReject || 0) + (p.secondaryTotalReject || 0), 0);
+  const totalOvertime       = filteredProductions.reduce((s, p) => s + (p.overtimeHours || 0), 0);
+  const presentCount        = filteredProductions.filter(p => p.attendance === 'Present').length;
+  const absentCount         = filteredProductions.filter(p => p.attendance === 'Absent').length;
 
   return (
     <div className="space-y-6 pb-8 w-full max-w-full">
@@ -148,16 +168,20 @@ const TotalProduction = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: 'Total Prod',   value: totalProduction.toLocaleString() },
+            { label: 'Total Prod',   value: totalProduction.toLocaleString(), note: tyreRejects > 0 ? `+${tyreRejects} Rej` : null },
             { label: 'Net Prod',     value: totalNet.toLocaleString() },
             { label: 'Total Reject', value: totalReject.toLocaleString() },
+            { label: 'Tyre Reject',  value: tyreRejects.toLocaleString() },
             { label: 'Overtime',     value: totalOvertime.toLocaleString() },
             { label: 'Entries',      value: `${presentCount}P / ${absentCount}A` },
           ].map(s => (
             <div key={s.label} className="rounded-xl p-3 border text-center bg-gray-50 border-gray-200">
-              <div className="text-[10px] font-bold uppercase tracking-wider mb-1 text-gray-600">{s.label}</div>
+              <div className="text-[10px] font-bold uppercase tracking-wider mb-1 text-gray-600 flex items-center justify-center gap-1">
+                {s.label}
+                {s.note && <span className="text-[9px] text-blue-600 font-bold bg-blue-50 px-1 rounded">({s.note})</span>}
+              </div>
               <div className="text-lg font-black text-black">{s.value}</div>
             </div>
           ))}
@@ -227,14 +251,14 @@ const TotalProduction = () => {
                            {isPresent ? `${prod.inTime || '-'} to ${prod.outTime || '-'}` : '-'}
                          </td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.targetProduction ?? 0) : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.totalProduction ?? 0) : '-'}</td>
+                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (isMolding(prod) ? (prod.totalProduction ?? 0) : ((prod.totalProduction ?? 0) + (prod.totalReject ?? 0))) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.netProduction ?? 0) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.extraProduction ?? 0) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.totalReject ?? 0) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.reject2 ?? 0) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.reject3 ?? 0) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.secondaryDieType || '-') : '-'}</td>
-                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.secondaryTotalProduction ?? 0) : '-'}</td>
+                         <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? ((prod.secondaryTotalProduction ?? 0) + ((prod.secondaryDieType === '4 Die' || prod.secondaryDieType === '6 Die') ? (prod.secondaryTotalReject ?? 0) : 0)) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.secondaryTotalReject ?? 0) : '-'}</td>
                          <td className="px-3 py-3 text-sm font-medium text-black whitespace-nowrap">{isPresent ? (prod.lowProductionReason || '-') : '-'}</td>
                          <td className="px-3 py-3 text-sm font-bold text-black whitespace-nowrap">{isPresent ? (prod.bonusAmount?.toFixed(2) ?? '0.00') : '-'}</td>
@@ -243,6 +267,17 @@ const TotalProduction = () => {
                      );
                    })}
                  </tbody>
+                  <tfoot className="bg-gray-100 border-t-2 border-gray-300 font-black text-black text-sm">
+                    <tr>
+                      <td colSpan="8" className="px-3 py-3 text-right uppercase text-xs font-bold text-gray-700">Total</td>
+                      <td className="px-3 py-3 text-sm font-black text-blue-600 whitespace-nowrap">{totalProduction.toLocaleString()}</td>
+                      <td className="px-3 py-3 text-sm font-black text-green-600 whitespace-nowrap">{totalNet.toLocaleString()}</td>
+                      <td className="px-3 py-3 whitespace-nowrap"></td>
+                      <td className="px-3 py-3 text-sm font-black text-red-600 whitespace-nowrap">{totalReject.toLocaleString()}</td>
+                      <td colSpan="7" className="px-3 py-3 whitespace-nowrap"></td>
+                      <td className="px-3 py-3 text-sm font-black text-black whitespace-nowrap">{totalOvertime}</td>
+                    </tr>
+                  </tfoot>
                </table>
              </div>
           )}

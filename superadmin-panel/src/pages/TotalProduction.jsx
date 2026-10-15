@@ -76,8 +76,30 @@ const TotalProduction = () => {
   });
   const activeForemenList = Array.from(liveForemen).sort();
 
-  // Grand total and splits
-  const totalOverallProduction = filteredProductions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
+  const tyreRejects = filteredProductions.reduce((sum, p) => {
+    let curr = 0;
+    if (!isMolding(p)) curr += (p.totalReject || 0);
+    if (p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die') curr += (p.secondaryTotalReject || 0);
+    return sum + curr;
+  }, 0);
+
+  const fourDieRejects = filteredProductions.reduce((sum, p) => {
+    let curr = 0;
+    if (p.jobType === '4 Die' || (!p.jobType && p.labour?.labourType === '4 Die')) curr += (p.totalReject || 0);
+    if (p.secondaryDieType === '4 Die') curr += (p.secondaryTotalReject || 0);
+    return sum + curr;
+  }, 0);
+
+  const sixDieRejects = filteredProductions.reduce((sum, p) => {
+    let curr = 0;
+    if (p.jobType === '6 Die' || (!p.jobType && p.labour?.labourType === '6 Die')) curr += (p.totalReject || 0);
+    if (p.secondaryDieType === '6 Die') curr += (p.secondaryTotalReject || 0);
+    return sum + curr;
+  }, 0);
+
+  // Grand total and splits (tyre rejects included in Total Production)
+  const baseOverallProduction = filteredProductions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
+  const totalOverallProduction = baseOverallProduction + tyreRejects;
   const totalOverallReject = filteredProductions.reduce((sum, p) => sum + (p.totalReject || 0) + (p.secondaryTotalReject || 0), 0);
   const totalOverallNet = filteredProductions.reduce((sum, p) => sum + (p.netProduction || 0) + ((p.secondaryTotalProduction || 0) - (p.secondaryTotalReject || 0)), 0);
   
@@ -88,22 +110,16 @@ const TotalProduction = () => {
     if (p.jobType === '4 Die' || (!p.jobType && p.labour?.labourType === '4 Die')) curr += (p.totalProduction || 0);
     if (p.secondaryDieType === '4 Die') curr += (p.secondaryTotalProduction || 0);
     return sum + curr;
-  }, 0);
+  }, 0) + fourDieRejects;
 
   const sixDieProd = filteredProductions.reduce((sum, p) => {
     let curr = 0;
     if (p.jobType === '6 Die' || (!p.jobType && p.labour?.labourType === '6 Die')) curr += (p.totalProduction || 0);
     if (p.secondaryDieType === '6 Die') curr += (p.secondaryTotalProduction || 0);
     return sum + curr;
-  }, 0);
+  }, 0) + sixDieRejects;
 
   const tyreProd = totalOverallProduction - moldingProd;
-  const tyreRejects = filteredProductions.reduce((sum, p) => {
-    let curr = 0;
-    if (!isMolding(p)) curr += (p.totalReject || 0);
-    if (p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die') curr += (p.secondaryTotalReject || 0);
-    return sum + curr;
-  }, 0);
 
   const pageTitle = type === 'molding' 
     ? 'Molding Production' 
@@ -231,11 +247,20 @@ const TotalProduction = () => {
               <div className="text-4xl font-black text-teal-600">
                 {totalOverallProduction.toLocaleString()} <span className="text-lg font-medium text-teal-700">pcs</span>
               </div>
-              {totalOverallReject > 0 && (
-                <div className="text-[11px] font-semibold text-gray-500 mt-1">
-                  <span>Net: {totalOverallNet.toLocaleString()}</span> • <span className="text-red-500 font-bold">{totalOverallReject.toLocaleString()} Rejects</span>
-                </div>
-              )}
+              <div className="text-[11px] font-semibold text-gray-500 mt-1 flex flex-wrap items-center gap-1.5">
+                <span>Net: {totalOverallNet.toLocaleString()}</span>
+                {totalOverallReject > 0 && (
+                  <>
+                    <span>•</span>
+                    <span className="text-red-500 font-bold">{totalOverallReject.toLocaleString()} Rejects</span>
+                    {tyreRejects > 0 && (
+                      <span className="text-teal-800 font-bold bg-teal-100 border border-teal-200 px-1.5 py-0.5 rounded text-[10px]">
+                        (Incl. {tyreRejects.toLocaleString()} Tyre Rej)
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
             <div className="flex flex-col gap-2 min-w-[140px]">
               {(!type || type === 'difference-of-tyre') && (
@@ -370,7 +395,11 @@ const TotalProduction = () => {
                         {prod.attendance === 'Present' ? prod.targetProduction || 0 : '-'}
                       </td>
                       <td className="p-3 text-right font-black text-sm text-blue-600">
-                        {prod.attendance === 'Present' ? prod.totalProduction || 0 : '-'}
+                        {prod.attendance === 'Present' ? (
+                          isMolding(prod)
+                            ? (prod.totalProduction || 0)
+                            : ((prod.totalProduction || 0) + (prod.totalReject || 0))
+                        ) : '-'}
                       </td>
                       <td className="p-3 text-right font-black text-sm text-green-600">
                         {prod.attendance === 'Present' ? prod.netProduction || 0 : '-'}
@@ -392,7 +421,7 @@ const TotalProduction = () => {
                           <>
                             <div className="font-bold text-sm text-indigo-600">{prod.secondaryDieType}</div>
                             <div className="text-[10px] text-gray-500">
-                              Tot:{prod.secondaryTotalProduction || 0} Rej:{prod.secondaryTotalReject || 0}
+                              Tot:{(prod.secondaryTotalProduction || 0) + ((prod.secondaryDieType === '4 Die' || prod.secondaryDieType === '6 Die') ? (prod.secondaryTotalReject || 0) : 0)} Rej:{prod.secondaryTotalReject || 0}
                             </div>
                           </>
                         ) : '-'}
@@ -415,6 +444,15 @@ const TotalProduction = () => {
                     </tr>
                   ))}
                 </tbody>
+                <tfoot className="bg-gray-100 border-t-2 border-gray-300 font-black text-gray-900 text-sm">
+                  <tr>
+                    <td colSpan="5" className="p-3 text-right uppercase text-xs font-bold text-gray-600">Total</td>
+                    <td className="p-3 text-right text-blue-600 font-black">{totalOverallProduction.toLocaleString()}</td>
+                    <td className="p-3 text-right text-green-600 font-black">{totalOverallNet.toLocaleString()}</td>
+                    <td className="p-3 text-right text-red-500 font-bold">{totalOverallReject.toLocaleString()}</td>
+                    <td colSpan="3" className="p-3"></td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           )}

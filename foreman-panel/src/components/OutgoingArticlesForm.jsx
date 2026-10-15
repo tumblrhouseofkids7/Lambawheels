@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Receipt, FileText, Scale, DollarSign, Building2, Percent, Calculator, Plus, Trash2, Truck, MapPin, User, Mail, CheckSquare, Square } from 'lucide-react';
+import { Calendar, Receipt, FileText, Scale, DollarSign, Building2, Percent, Calculator, Plus, Trash2, Truck, MapPin, User, Mail, CheckSquare, Square, CheckCircle2 } from 'lucide-react';
 import useOutgoingArticleStore from '../store/useOutgoingArticleStore';
 
 const OutgoingArticlesForm = () => {
@@ -76,15 +76,130 @@ const OutgoingArticlesForm = () => {
     setInvoiceDetails(prev => ({ ...prev, [name]: value }));
   };
 
+  const [isBuyerMatched, setIsBuyerMatched] = useState(false);
+  const [isConsigneeMatched, setIsConsigneeMatched] = useState(false);
+
+  const findBuyerMatch = (inputName) => {
+    if (!inputName || typeof inputName !== 'string') return null;
+    const norm = inputName.trim().toLowerCase();
+    if (!norm) return null;
+    return suggestions?.buyers?.find(
+      b => b.name && b.name.trim().toLowerCase() === norm
+    );
+  };
+
+  const findConsigneeMatch = (inputName) => {
+    if (!inputName || typeof inputName !== 'string') return null;
+    const norm = inputName.trim().toLowerCase();
+    if (!norm) return null;
+    return suggestions?.consignees?.find(
+      c => c.name && c.name.trim().toLowerCase() === norm
+    ) || suggestions?.buyers?.find(
+      b => b.name && b.name.trim().toLowerCase() === norm
+    );
+  };
+
   const handleBuyerChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'name') {
+      const match = findBuyerMatch(value);
+      if (match) {
+        setBuyerDetails(prev => ({
+          ...prev,
+          name: value,
+          address: match.address !== undefined ? match.address.trim() : prev.address,
+          city: match.city || prev.city,
+          state: match.state || prev.state,
+          stateCode: match.stateCode || prev.stateCode,
+          gstin: match.gstin || prev.gstin,
+          email: match.email || prev.email,
+        }));
+        setIsBuyerMatched(true);
+        if (match.state) {
+          setInvoiceDetails(prev => ({
+            ...prev,
+            state: prev.state || match.state,
+            stateCode: prev.stateCode || match.stateCode || ''
+          }));
+        }
+        return;
+      } else {
+        setIsBuyerMatched(false);
+      }
+    }
     setBuyerDetails(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleBuyerBlur = (e) => {
+    const { name, value } = e.target;
+    if (name === 'name' && value) {
+      const match = findBuyerMatch(value);
+      if (match) {
+        setBuyerDetails(prev => ({
+          ...prev,
+          name: match.name || value,
+          address: match.address !== undefined ? match.address.trim() : prev.address,
+          city: match.city || prev.city,
+          state: match.state || prev.state,
+          stateCode: match.stateCode || prev.stateCode,
+          gstin: match.gstin || prev.gstin,
+          email: match.email || prev.email,
+        }));
+        setIsBuyerMatched(true);
+        if (match.state) {
+          setInvoiceDetails(prev => ({
+            ...prev,
+            state: prev.state || match.state,
+            stateCode: prev.stateCode || match.stateCode || ''
+          }));
+        }
+      }
+    }
   };
 
   const handleConsigneeChange = (e) => {
     if (copyToConsignee) setCopyToConsignee(false);
     const { name, value } = e.target;
+    if (name === 'name') {
+      const match = findConsigneeMatch(value);
+      if (match) {
+        setConsigneeDetails(prev => ({
+          ...prev,
+          name: value,
+          address: match.address !== undefined ? match.address.trim() : prev.address,
+          city: match.city || prev.city,
+          state: match.state || prev.state,
+          stateCode: match.stateCode || prev.stateCode,
+          gstin: match.gstin || prev.gstin,
+          email: match.email || prev.email,
+        }));
+        setIsConsigneeMatched(true);
+        return;
+      } else {
+        setIsConsigneeMatched(false);
+      }
+    }
     setConsigneeDetails(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleConsigneeBlur = (e) => {
+    const { name, value } = e.target;
+    if (name === 'name' && value) {
+      const match = findConsigneeMatch(value);
+      if (match) {
+        setConsigneeDetails(prev => ({
+          ...prev,
+          name: match.name || value,
+          address: match.address !== undefined ? match.address.trim() : prev.address,
+          city: match.city || prev.city,
+          state: match.state || prev.state,
+          stateCode: match.stateCode || prev.stateCode,
+          gstin: match.gstin || prev.gstin,
+          email: match.email || prev.email,
+        }));
+        setIsConsigneeMatched(true);
+      }
+    }
   };
 
   const handleGoodsChange = (index, e) => {
@@ -170,6 +285,8 @@ const OutgoingArticlesForm = () => {
         name: '', address: '', city: '', state: '', stateCode: '', gstin: '', email: ''
       });
       setCopyToConsignee(true);
+      setIsBuyerMatched(false);
+      setIsConsigneeMatched(false);
       setGoods([{ ...defaultGoods }]);
       setTaxes({ cgstRate: '', sgstRate: '' });
     }
@@ -234,10 +351,31 @@ const OutgoingArticlesForm = () => {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Name</label>
-                <input type="text" name="name" value={buyerDetails.name} onChange={handleBuyerChange} list="buyerNames-list" placeholder="Buyer Name" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-semibold text-gray-700">Name</label>
+                  {isBuyerMatched && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      Buyer Matched (Autofilled)
+                    </span>
+                  )}
+                </div>
+                <input 
+                  type="text" 
+                  name="name" 
+                  value={buyerDetails.name} 
+                  onChange={handleBuyerChange} 
+                  onBlur={handleBuyerBlur}
+                  list="buyerNames-list" 
+                  placeholder="Buyer Name" 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" 
+                  required 
+                />
                 <datalist id="buyerNames-list">
-                  {suggestions?.buyerNames?.map((n, i) => <option key={i} value={n} />)}
+                  {Array.from(new Set([
+                    ...(suggestions?.buyerNames || []),
+                    ...(suggestions?.buyers?.map(b => b.name) || [])
+                  ])).filter(Boolean).map((n, i) => <option key={i} value={n} />)}
                 </datalist>
               </div>
               <div>
@@ -297,10 +435,32 @@ const OutgoingArticlesForm = () => {
             
             <div className={`space-y-4 transition-opacity ${copyToConsignee ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Name</label>
-                <input type="text" name="name" value={consigneeDetails.name} onChange={handleConsigneeChange} list="consigneeNames-list" placeholder="Consignee Name" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm" required />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-semibold text-gray-700">Name</label>
+                  {isConsigneeMatched && !copyToConsignee && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
+                      Consignee Matched (Autofilled)
+                    </span>
+                  )}
+                </div>
+                <input 
+                  type="text" 
+                  name="name" 
+                  value={consigneeDetails.name} 
+                  onChange={handleConsigneeChange} 
+                  onBlur={handleConsigneeBlur}
+                  list="consigneeNames-list" 
+                  placeholder="Consignee Name" 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm" 
+                  required 
+                />
                 <datalist id="consigneeNames-list">
-                  {suggestions?.consigneeNames?.map((n, i) => <option key={i} value={n} />)}
+                  {Array.from(new Set([
+                    ...(suggestions?.consigneeNames || []),
+                    ...(suggestions?.consignees?.map(c => c.name) || []),
+                    ...(suggestions?.buyerNames || [])
+                  ])).filter(Boolean).map((n, i) => <option key={i} value={n} />)}
                 </datalist>
               </div>
               <div>

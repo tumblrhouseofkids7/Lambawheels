@@ -74,7 +74,54 @@ exports.getSuggestions = async (req, res) => {
     const stateCodes = await OutgoingArticle.distinct('buyerDetails.stateCode');
     const gstins = await OutgoingArticle.distinct('buyerDetails.gstin');
 
-    res.json({ goods, hsn, vehicles, buyerNames, consigneeNames, addresses, cities, states, stateCodes, gstins });
+    const buyers = await OutgoingArticle.aggregate([
+      { $match: { 'buyerDetails.name': { $exists: true, $ne: '' } } },
+      { $sort: { 'invoiceDetails.invoiceDate': -1, createdAt: -1 } },
+      {
+        $group: {
+          _id: { $toLower: { $trim: { input: '$buyerDetails.name' } } },
+          name: { $first: '$buyerDetails.name' },
+          address: { $first: '$buyerDetails.address' },
+          city: { $first: '$buyerDetails.city' },
+          state: { $first: '$buyerDetails.state' },
+          stateCode: { $first: '$buyerDetails.stateCode' },
+          gstin: { $first: '$buyerDetails.gstin' },
+          email: { $first: '$buyerDetails.email' }
+        }
+      }
+    ]);
+
+    const consignees = await OutgoingArticle.aggregate([
+      { $match: { 'consigneeDetails.name': { $exists: true, $ne: '' } } },
+      { $sort: { 'invoiceDetails.invoiceDate': -1, createdAt: -1 } },
+      {
+        $group: {
+          _id: { $toLower: { $trim: { input: '$consigneeDetails.name' } } },
+          name: { $first: '$consigneeDetails.name' },
+          address: { $first: '$consigneeDetails.address' },
+          city: { $first: '$consigneeDetails.city' },
+          state: { $first: '$consigneeDetails.state' },
+          stateCode: { $first: '$consigneeDetails.stateCode' },
+          gstin: { $first: '$consigneeDetails.gstin' },
+          email: { $first: '$consigneeDetails.email' }
+        }
+      }
+    ]);
+
+    res.json({ 
+      goods, 
+      hsn, 
+      vehicles, 
+      buyerNames, 
+      consigneeNames, 
+      addresses, 
+      cities, 
+      states, 
+      stateCodes, 
+      gstins,
+      buyers,
+      consignees
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

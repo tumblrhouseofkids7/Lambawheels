@@ -171,8 +171,15 @@ const getShiftsForDate = async (req, res) => {
         const productions = await Production.find({
           foreman: shift.foreman._id,
           date: { $gte: start, $lte: end },
-        });
-        const totalProduction = productions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0);
+        }).populate('labour', 'labourType');
+        const tyreRejects = productions.reduce((sum, p) => {
+          let curr = 0;
+          const isMolding = p.jobType === 'Molding' || (!p.jobType && p.labour?.labourType === 'Molding');
+          if (!isMolding) curr += (p.totalReject || 0);
+          if (p.secondaryDieType === '4 Die' || p.secondaryDieType === '6 Die') curr += (p.secondaryTotalReject || 0);
+          return sum + curr;
+        }, 0);
+        const totalProduction = productions.reduce((sum, p) => sum + (p.totalProduction || 0) + (p.secondaryTotalProduction || 0), 0) + tyreRejects;
         return {
           _id: shift._id,
           foremanId: shift.foreman._id,

@@ -34,7 +34,31 @@ const getDashboardSummary = async (req, res) => {
             $sum: {
               $add: [
                 { $ifNull: ['$totalProduction', 0] },
-                { $ifNull: ['$secondaryTotalProduction', 0] }
+                { $ifNull: ['$secondaryTotalProduction', 0] },
+                {
+                  $cond: [
+                    {
+                      $or: [
+                        { $eq: ['$jobType', 'Molding'] },
+                        {
+                          $and: [
+                            { $or: [{ $eq: ['$jobType', null] }, { $eq: [{ $type: '$jobType' }, 'missing'] }] },
+                            { $eq: ['$labourDetails.labourType', 'Molding'] }
+                          ]
+                        }
+                      ]
+                    },
+                    0,
+                    { $ifNull: ['$totalReject', 0] }
+                  ]
+                },
+                {
+                  $cond: [
+                    { $in: ['$secondaryDieType', ['4 Die', '6 Die']] },
+                    { $ifNull: ['$secondaryTotalReject', 0] },
+                    0
+                  ]
+                }
               ]
             }
           },
@@ -75,11 +99,27 @@ const getDashboardSummary = async (req, res) => {
                         }
                       ]
                     },
-                    { $ifNull: ['$totalProduction', 0] },
+                    {
+                      $add: [
+                        { $ifNull: ['$totalProduction', 0] },
+                        { $ifNull: ['$totalReject', 0] }
+                      ]
+                    },
                     0
                   ]
                 },
-                { $cond: [ { $eq: ['$secondaryDieType', '4 Die'] }, { $ifNull: ['$secondaryTotalProduction', 0] }, 0 ] }
+                {
+                  $cond: [
+                    { $eq: ['$secondaryDieType', '4 Die'] },
+                    {
+                      $add: [
+                        { $ifNull: ['$secondaryTotalProduction', 0] },
+                        { $ifNull: ['$secondaryTotalReject', 0] }
+                      ]
+                    },
+                    0
+                  ]
+                }
               ]
             }
           },
@@ -99,11 +139,27 @@ const getDashboardSummary = async (req, res) => {
                         }
                       ]
                     },
-                    { $ifNull: ['$totalProduction', 0] },
+                    {
+                      $add: [
+                        { $ifNull: ['$totalProduction', 0] },
+                        { $ifNull: ['$totalReject', 0] }
+                      ]
+                    },
                     0
                   ]
                 },
-                { $cond: [ { $eq: ['$secondaryDieType', '6 Die'] }, { $ifNull: ['$secondaryTotalProduction', 0] }, 0 ] }
+                {
+                  $cond: [
+                    { $eq: ['$secondaryDieType', '6 Die'] },
+                    {
+                      $add: [
+                        { $ifNull: ['$secondaryTotalProduction', 0] },
+                        { $ifNull: ['$secondaryTotalReject', 0] }
+                      ]
+                    },
+                    0
+                  ]
+                }
               ]
             }
           }
