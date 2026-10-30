@@ -39,4 +39,9 @@ export const salaryService = {
   getSalarySheet: (month, year) => api.get('/salary', { params: { month, year } }),
 };
 
+export const insightService = {
+  getExecutiveInsights: (params) => api.get('/insights/executive', { params }),
+};
+
+
 

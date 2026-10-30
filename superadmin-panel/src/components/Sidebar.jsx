@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, X, ClipboardList, BarChart2, Truck, FileSpreadsheet, ChevronLeft, ChevronRight, HardHat, Package, ChevronDown, ChevronUp, Circle } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, X, ClipboardList, BarChart2, Truck, FileSpreadsheet, ChevronLeft, ChevronRight, HardHat, Package, ChevronDown, ChevronUp, Circle, Sparkles } from 'lucide-react';
 import logo from '../assets/logo.jpg';
 
 const Sidebar = ({ isOpen, setIsOpen, isMini, setIsMini }) => {
@@ -8,6 +8,7 @@ const Sidebar = ({ isOpen, setIsOpen, isMini, setIsMini }) => {
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { name: 'Executive Insights', path: '/insights', icon: Sparkles },
     { name: 'User Management', path: '/users', icon: Users },
     {
       name: 'Total Production',

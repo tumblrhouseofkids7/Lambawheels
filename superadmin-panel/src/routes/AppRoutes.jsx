@@ -14,6 +14,7 @@ import ContractorSalary from '../pages/ContractorSalary';
 import LabourThakdarReport from '../pages/LabourThakdarReport';
 import IncomingArticles from '../pages/IncomingArticles';
 import OutgoingArticles from '../pages/OutgoingArticles';
+import ExecutiveInsights from '../pages/ExecutiveInsights';
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuthStore();
@@ -25,6 +26,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={['superadmin']} />}>
         <Route element={<AdminLayout />}>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/insights" element={<ExecutiveInsights />} />
           <Route path="/users" element={<UserManagement />} />
           <Route path="/total-production" element={<TotalProduction />} />
           <Route path="/total-production/:type" element={<TotalProduction />} />
