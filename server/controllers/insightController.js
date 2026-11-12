@@ -43,12 +43,38 @@ exports.getExecutiveInsights = async (req, res) => {
     // ─────────────────────────────────────────────────────────────
     // 1. WORKER PERFORMANCE, TARGETS & CONTINUOUS DOWNPERFORMANCE
     // ─────────────────────────────────────────────────────────────
-    const prodQuery = { attendance: 'Present', ...prodDateFilter };
-    const prods = await Production.find(prodQuery)
+    const allShiftRecords = await Production.find(prodDateFilter)
       .populate('labour', 'name labourType role assignedForeman')
       .populate('foreman', 'name')
       .sort({ date: -1 })
       .lean();
+
+    let presentShiftsCount = 0;
+    let absentShiftsCount = 0;
+    const prods = [];
+
+    // Aggregators for visual charts
+    const dailyMap = {}; // 'YYYY-MM-DD' -> { goodParts, rejectParts, targetParts }
+    const lineTotals = { 'Molding': 0, '4 Die': 0, '6 Die': 0, 'Simple / Tyre': 0 };
+    const reasonCategoryCounts = {
+      'Die / Machine Issue': 0,
+      'Power / Utility Cut': 0,
+      'Material / Compound': 0,
+      'Operator / Other': 0
+    };
+    let targetedActualSum = 0;
+    let targetedGoalSum = 0;
+    let totalGoodPartsSum = 0;
+    let totalRejectPartsSum = 0;
+
+    for (const rec of allShiftRecords) {
+      if (rec.attendance === 'Present') {
+        presentShiftsCount++;
+        prods.push(rec);
+      } else {
+        absentShiftsCount++;
+      }
+    }
 
     const workerMap = {};
     for (const p of prods) {
@@ -78,6 +104,31 @@ exports.getExecutiveInsights = async (req, res) => {
       const rej = (Number(p.totalReject) || 0) + (Number(p.secondaryTotalReject) || 0);
       const bonus = (Number(p.bonusAmount) || 0) + (Number(p.secondaryBonusAmount) || 0);
 
+      totalGoodPartsSum += net;
+      totalRejectPartsSum += rej;
+      if (target > 0) {
+        targetedActualSum += net;
+        targetedGoalSum += target;
+      }
+
+      // Line / Die breakdown
+      const rawType = p.jobType || p.labour.labourType || 'Simple';
+      if (rawType === 'Molding') lineTotals['Molding'] += net;
+      else if (rawType === '4 Die') lineTotals['4 Die'] += net;
+      else if (rawType === '6 Die') lineTotals['6 Die'] += net;
+      else lineTotals['Simple / Tyre'] += net;
+
+      // Daily production trend map
+      if (p.date) {
+        const dKey = new Date(p.date).toISOString().split('T')[0];
+        if (!dailyMap[dKey]) {
+          dailyMap[dKey] = { date: dKey, goodParts: 0, rejectParts: 0, targetParts: 0 };
+        }
+        dailyMap[dKey].goodParts += net;
+        dailyMap[dKey].rejectParts += rej;
+        dailyMap[dKey].targetParts += target;
+      }
+
       workerMap[id].totalNet += net;
       workerMap[id].totalTarget += target;
       workerMap[id].totalRejects += rej;
@@ -88,7 +139,20 @@ exports.getExecutiveInsights = async (req, res) => {
       if (isBelow) {
         workerMap[id].daysBelowTarget++;
         if (p.lowProductionReason && p.lowProductionReason.trim()) {
-          workerMap[id].reasons.push(p.lowProductionReason.trim());
+          const rText = p.lowProductionReason.trim();
+          workerMap[id].reasons.push(rText);
+          const lower = rText.toLowerCase();
+          if (lower.includes('die') || lower.includes('machine') || lower.includes('mold') || lower.includes('break') || lower.includes('heat')) {
+            reasonCategoryCounts['Die / Machine Issue']++;
+          } else if (lower.includes('power') || lower.includes('light') || lower.includes('electric')) {
+            reasonCategoryCounts['Power / Utility Cut']++;
+          } else if (lower.includes('material') || lower.includes('compound') || lower.includes('dana') || lower.includes('short')) {
+            reasonCategoryCounts['Material / Compound']++;
+          } else {
+            reasonCategoryCounts['Operator / Other']++;
+          }
+        } else {
+          reasonCategoryCounts['Operator / Other']++;
         }
       }
 
@@ -378,12 +442,49 @@ exports.getExecutiveInsights = async (req, res) => {
     });
 
     // ─────────────────────────────────────────────────────────────
-    // 4. EXECUTIVE SUMMARY METRICS
+    // 4. EXECUTIVE SUMMARY & SIMPLE VISUAL METRICS
     // ─────────────────────────────────────────────────────────────
     const activeWorkersCount = allWorkers.length;
     const totalProductionVolume = allWorkers.reduce((sum, w) => sum + w.totalNet, 0);
     const totalTargetVolume = allWorkers.reduce((sum, w) => sum + w.totalTarget, 0);
-    const overallAchievement = totalTargetVolume > 0 ? Number(((totalProductionVolume / totalTargetVolume) * 100).toFixed(1)) : 100;
+    const overallAchievement = targetedGoalSum > 0
+      ? Number(((targetedActualSum / targetedGoalSum) * 100).toFixed(1))
+      : 100;
+
+    const totalShiftsCount = presentShiftsCount + absentShiftsCount;
+    const attendanceRate = totalShiftsCount > 0
+      ? Number(((presentShiftsCount / totalShiftsCount) * 100).toFixed(1))
+      : 100;
+
+    const totalGrossParts = totalGoodPartsSum + totalRejectPartsSum;
+    const goodQualityRate = totalGrossParts > 0
+      ? Number(((totalGoodPartsSum / totalGrossParts) * 100).toFixed(1))
+      : 100;
+    const rejectRate = totalGrossParts > 0
+      ? Number(((totalRejectPartsSum / totalGrossParts) * 100).toFixed(1))
+      : 0;
+
+    // Daily production trend (last 8 active dates, sorted chronologically)
+    const dailyProductionTrend = Object.values(dailyMap)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 8)
+      .reverse()
+      .map(d => {
+        const dt = new Date(d.date);
+        const label = dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        return {
+          ...d,
+          label
+        };
+      });
+
+    // Production share by Die / Line type (for simple Donut chart)
+    const totalLineSum = Object.values(lineTotals).reduce((s, v) => s + v, 0) || 1;
+    const lineBreakdown = Object.entries(lineTotals).map(([label, value]) => ({
+      label,
+      value,
+      percent: Math.round((value / totalLineSum) * 100)
+    }));
 
     res.json({
       summary: {
@@ -396,6 +497,20 @@ exports.getExecutiveInsights = async (req, res) => {
         regularClientsCount: regularClients.length,
         vendorPriceHikesCount: vendorPriceHikes.length,
         totalExtraCostBleed: Math.round(totalExtraCostBleed)
+      },
+      visualMetrics: {
+        gauges: {
+          targetAchievementRate: Math.min(100, overallAchievement),
+          attendanceRate,
+          goodQualityRate,
+          rejectRate,
+          presentShiftsCount,
+          absentShiftsCount,
+          totalGoodParts: totalGoodPartsSum,
+          totalRejectParts: totalRejectPartsSum
+        },
+        dailyProductionTrend,
+        lineBreakdown
       },
       topPerformers,
       targetDeficits,
